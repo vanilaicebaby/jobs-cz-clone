@@ -1,10 +1,4 @@
 @import './styles/global.css';
 @import './styles/landing.css';
 @import './styles/login.css';
-@import './styles/feed.css';
-
-.app-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
+@import './styles/advanced-job-feed.css';

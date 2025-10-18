@@ -1,8 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
-import FeedPage from './pages/FeedPage';
+import AdvancedJobFeed from './pages/AdvancedJobFeed';
 import './index.css';
 
 function App() {
@@ -10,9 +9,8 @@ function App() {
     <Router>
       <div className="app-container">
         <Routes>
+          <Route path="/" element={<AdvancedJobFeed />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/landing" element={<LandingPage />} />
-          <Route path="/" element={<FeedPage />} />
         </Routes>
       </div>
     </Router>
