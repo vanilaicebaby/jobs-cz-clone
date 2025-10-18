@@ -116,3 +116,21 @@
 .button-icon {
   margin-right: 5px;
 }
+@media (max-width: 480px) {
+  .landing-container {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .tab-button {
+    font-size: 14px;
+  }
+
+  .social-login-button {
+    font-size: 14px;
+  }
+
+  .main-action-button {
+    font-size: 14px;
+  }
+}

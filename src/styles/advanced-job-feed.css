@@ -370,3 +370,75 @@
     max-width: 100%;
   }
 }
+@media (max-width: 480px) {
+  .advanced-job-feed {
+    padding: 20px 10px;
+  }
+
+  .search-container input {
+    padding: 12px 40px;
+    font-size: 14px;
+  }
+
+  .search-icon, .filter-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .job-categories {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  }
+
+  .job-categories::-webkit-scrollbar { /* WebKit */
+    width: 0;
+    height: 0;
+  }
+
+  .category-btn {
+    padding: 8px 15px;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  .job-grid {
+    gap: 15px;
+  }
+
+  .job-card {
+    padding: 15px;
+  }
+
+  .job-card-content h3 {
+    font-size: 18px;
+  }
+
+  .job-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .job-card-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-quick-apply, .btn-details {
+    width: 100%;
+  }
+
+  .auth-buttons {
+    position: static;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .login-btn, .register-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+}
