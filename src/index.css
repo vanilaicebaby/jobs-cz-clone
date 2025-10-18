@@ -2,3 +2,9 @@
 @import './styles/landing.css';
 @import './styles/login.css';
 @import './styles/feed.css';
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

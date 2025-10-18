@@ -4,6 +4,7 @@
   align-items: center;
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-50), white);
+  padding: 20px;
 }
 
 .login-container {
@@ -18,7 +19,7 @@
 .login-title {
   text-align: center;
   color: var(--primary-300);
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   font-size: 24px;
 }
 
@@ -34,6 +35,15 @@
   gap: 15px;
 }
 
+.error-message {
+  background-color: var(--red-50);
+  border: 1px solid var(--red-200);
+  color: var(--red-700);
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -42,6 +52,7 @@
 .form-label {
   margin-bottom: 5px;
   color: var(--neutral-700);
+  font-size: 14px;
 }
 
 .form-input {
@@ -49,6 +60,7 @@
   border: 1px solid var(--neutral-200);
   border-radius: 5px;
   font-size: 16px;
+  transition: border-color 0.3s ease;
 }
 
 .form-input:focus {
@@ -67,15 +79,20 @@
 .remember-me {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
-.remember-me input {
-  margin-right: 8px;
+.remember-me input[type="checkbox"] {
+  accent-color: var(--primary-300);
 }
 
 .forgot-password {
+  background: none;
+  border: none;
   color: var(--primary-300);
+  cursor: pointer;
   text-decoration: none;
+  font-size: 14px;
 }
 
 .login-button {
@@ -86,6 +103,7 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 16px;
   transition: background-color 0.3s ease;
 }
 
@@ -95,10 +113,16 @@
 
 .register-link {
   text-align: center;
-  margin-top: 15px;
+  color: var(--neutral-600);
 }
 
-.register-link a {
+.register-link button {
+  background: none;
+  border: none;
   color: var(--primary-300);
-  text-decoration: none;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: underline;
+  padding: 0;
+  margin-left: 5px;
 }

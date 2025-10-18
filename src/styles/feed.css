@@ -1,24 +1,28 @@
 .job-feed {
   min-height: 100vh;
   background-color: var(--neutral-50);
+  padding: 20px;
 }
 
 .job-feed-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 30px 15px;
 }
 
 .job-search-container {
-  position: relative;
   margin-bottom: 20px;
+}
+
+.job-search-wrapper {
+  position: relative;
+  width: 100%;
 }
 
 .job-search-input {
   width: 100%;
-  padding: 12px 15px 12px 40px;
+  padding: 12px 12px 12px 40px;
   border: 1px solid var(--neutral-200);
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: 16px;
   transition: border-color 0.3s ease;
 }
@@ -31,7 +35,7 @@
 
 .job-search-icon {
   position: absolute;
-  left: 12px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--neutral-300);
@@ -39,7 +43,7 @@
 
 .job-search-filter {
   position: absolute;
-  right: 12px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--neutral-300);
@@ -62,6 +66,7 @@
   color: var(--neutral-700);
   cursor: pointer;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .job-category-button.active {
@@ -94,32 +99,65 @@
   margin-bottom: 15px;
 }
 
+.job-card-info {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
 .job-card-title {
   font-size: 18px;
   color: var(--primary-300);
-  font-weight: bold;
+  margin-bottom: 5px;
 }
 
-.job-card-details {
+.job-card-company {
   color: var(--neutral-600);
+  font-size: 14px;
+}
+
+.job-card-date {
+  color: var(--neutral-500);
+  font-size: 12px;
+}
+
+.job-card-description {
+  color: var(--neutral-700);
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.job-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .job-card-tags {
   display: flex;
   gap: 8px;
-  margin-top: 10px;
 }
 
 .job-card-tag {
-  padding: 4px 8px;
   background-color: var(--primary-50);
   color: var(--primary-300);
+  padding: 4px 8px;
   border-radius: 15px;
   font-size: 12px;
+}
+
+.job-card-salary {
+  font-weight: bold;
+  color: var(--neutral-700);
 }
 
 .job-no-results {
   text-align: center;
   padding: 50px 0;
   color: var(--neutral-500);
+}
+
+.job-no-results-icon {
+  display: block;
+  margin: 0 auto 20px;
+  color: var(--neutral-300);
 }

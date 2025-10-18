@@ -26,84 +26,57 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-white">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-card">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-primary-300 mb-4">Přihlášení</h1>
-          <p className="text-neutral-600 mb-6">Zadejte své přihlašovací údaje</p>
-        </div>
+    <div className="login-page">
+      <div className="login-container">
+        <h1 className="login-title">Přihlášení</h1>
+        <p className="login-subtitle">Zadejte své přihlašovací údaje</p>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
+        <form className="login-form" onSubmit={handleLogin}>
+          {error && <div className="error-message">{error}</div>}
 
-          <div>
-            <label htmlFor="email" className="block text-neutral-700 mb-2">
-              Email
-            </label>
+          <div className="form-group">
+            <label className="form-label" htmlFor="email">Email</label>
             <input 
               type="email" 
               id="email"
+              className="form-input"
+              placeholder="vas.email@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-neutral-200 rounded-lg 
-              focus:outline-none focus:ring-2 focus:ring-primary-300"
-              placeholder="vas.email@example.com"
             />
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-neutral-700 mb-2">
-              Heslo
-            </label>
+          <div className="form-group">
+            <label className="form-label" htmlFor="password">Heslo</label>
             <input 
               type="password" 
               id="password"
+              className="form-input"
+              placeholder="Vaše heslo"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-neutral-200 rounded-lg 
-              focus:outline-none focus:ring-2 focus:ring-primary-300"
-              placeholder="Vaše heslo"
             />
           </div>
 
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <input 
-                type="checkbox" 
-                id="remember"
-                className="mr-2 text-primary-300 focus:ring-primary-300"
-              />
-              <label htmlFor="remember" className="text-neutral-600">
-                Zapamatovat
-              </label>
+          <div className="login-actions">
+            <div className="remember-me">
+              <input type="checkbox" id="remember" />
+              <label htmlFor="remember">Zapamatovat</label>
             </div>
-
-            <a href="#" className="text-primary-300 hover:underline">
-              Zapomenuté heslo?
-            </a>
+            <button type="button" className="forgot-password">Zapomenuté heslo?</button>
           </div>
 
           <button 
-            type="submit"
-            className="w-full py-3 bg-primary-300 text-white rounded-lg 
-            hover:bg-primary-400 transition-colors"
+            type="submit" 
+            className="login-button"
           >
             Přihlásit se
           </button>
 
-          <div className="text-center">
-            <p className="text-neutral-600">
-              Nemáte účet? {' '}
-              <a href="/" className="text-primary-300 hover:underline">
-                Zaregistrujte se
-              </a>
-            </p>
+          <div className="register-link">
+            Nemáte účet? <button type="button" onClick={() => navigate('/')}>Zaregistrujte se</button>
           </div>
         </form>
       </div>

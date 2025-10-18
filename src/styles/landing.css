@@ -4,6 +4,7 @@
   align-items: center;
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-50), white);
+  padding: 20px;
 }
 
 .landing-container {
@@ -18,7 +19,7 @@
 .landing-title {
   text-align: center;
   color: var(--primary-300);
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   font-size: 24px;
 }
 
@@ -49,6 +50,9 @@
 }
 
 .social-login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
@@ -58,7 +62,6 @@
   justify-content: center;
   width: 100%;
   padding: 10px;
-  margin-bottom: 10px;
   border: 1px solid var(--neutral-200);
   border-radius: 5px;
   background-color: white;
@@ -70,7 +73,7 @@
   background-color: var(--neutral-50);
 }
 
-.social-login-button svg {
+.social-login-icon {
   margin-right: 10px;
 }
 
@@ -94,17 +97,22 @@
 .main-action-button {
   width: 100%;
   padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   background-color: var(--primary-300);
   color: white;
   border: none;
   border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
 
 .main-action-button:hover {
   background-color: var(--primary-400);
+}
+
+.button-icon {
+  margin-right: 5px;
 }
