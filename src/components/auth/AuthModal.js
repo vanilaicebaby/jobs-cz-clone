@@ -130,14 +130,18 @@ function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
             </div>
           )}
 
-          {mode === 'login' && (
-            <div className="forgot-password">
-              <a href="#" onClick={(e) => {
-                e.preventDefault();
-                alert('Forgot password functionality not implemented');
-              }}>Forgot Password?</a>
-            </div>
-          )}
+{mode === 'login' && (
+  <div className="forgot-password">
+    <button 
+      onClick={(e) => {
+        e.preventDefault();
+        alert('Forgot password functionality not implemented');
+      }}
+    >
+      Forgot Password?
+    </button>
+  </div>
+)}
 
           <button type="submit" className="auth-submit-btn">
             {mode === 'login' ? 'Login' : 'Register'}
