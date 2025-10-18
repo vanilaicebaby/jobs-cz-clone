@@ -10,7 +10,8 @@ import {
   TrendingUp,
   Briefcase,
   UserPlus,
-  LogIn
+  LogIn,
+  ChevronDown
 } from 'lucide-react';
 import AuthModal from '../components/auth/AuthModal';
 
@@ -57,7 +58,7 @@ const AnimatedFlameIcon = ({ hotness }) => {
   );
 };
 
-// Mock data - enhanced
+// Enhanced Mock Jobs
 const ENHANCED_MOCK_JOBS = [
   {
     id: '1',
@@ -107,6 +108,52 @@ const INDUSTRY_CATEGORIES = [
   { name: 'Product', icon: <Briefcase className="category-icon" /> },
 ];
 
+// Dropdown component for mobile view
+const IndustryDropdown = ({ categories, selectedCategory, onSelect }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="industry-dropdown">
+      <button 
+        className="dropdown-toggle"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selectedCategory 
+          ? categories.find(cat => cat.name === selectedCategory)?.name || 'Select Industry'
+          : 'All Industries'
+        }
+        <ChevronDown size={20} className="dropdown-icon" />
+      </button>
+      {isOpen && (
+        <div className="dropdown-menu">
+          <button 
+            className={`dropdown-item ${!selectedCategory ? 'active' : ''}`}
+            onClick={() => {
+              onSelect(null);
+              setIsOpen(false);
+            }}
+          >
+            All Industries
+          </button>
+          {categories.map(category => (
+            <button
+              key={category.name}
+              className={`dropdown-item ${selectedCategory === category.name ? 'active' : ''}`}
+              onClick={() => {
+                onSelect(category.name);
+                setIsOpen(false);
+              }}
+            >
+              {category.icon}
+              {category.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 function AdvancedJobFeed() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -119,7 +166,7 @@ function AdvancedJobFeed() {
       (job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
        job.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-      (selectedCategory ? job.tags.some(tag => tag.toLowerCase() === selectedCategory.toLowerCase()) : true)
+      (selectedCategory ? job.tags.some(tag => tag.toLowerCase().includes(selectedCategory.toLowerCase())) : true)
     );
     setFilteredJobs(filtered);
   }, [searchTerm, selectedCategory]);
@@ -243,19 +290,31 @@ function AdvancedJobFeed() {
         </div>
       </div>
 
-      <div className="job-categories">
-        {INDUSTRY_CATEGORIES.map(category => (
-          <button 
-            key={category.name}
-            className={`category-btn ${selectedCategory === category.name ? 'active' : ''}`}
-            onClick={() => setSelectedCategory(
-              selectedCategory === category.name ? null : category.name
-            )}
-          >
-            {category.icon}
-            {category.name}
-          </button>
-        ))}
+      <div className="job-categories-container">
+        {/* Desktop categories */}
+        <div className="job-categories desktop-categories">
+          {INDUSTRY_CATEGORIES.map(category => (
+            <button 
+              key={category.name}
+              className={`category-btn ${selectedCategory === category.name ? 'active' : ''}`}
+              onClick={() => setSelectedCategory(
+                selectedCategory === category.name ? null : category.name
+              )}
+            >
+              {category.icon}
+              {category.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Mobile dropdown */}
+        <div className="mobile-category-dropdown">
+          <IndustryDropdown 
+            categories={INDUSTRY_CATEGORIES}
+            selectedCategory={selectedCategory}
+            onSelect={setSelectedCategory}
+          />
+        </div>
       </div>
 
       <div className="job-results">

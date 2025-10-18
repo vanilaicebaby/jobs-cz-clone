@@ -145,6 +145,12 @@
   right: 20px;
 }
 
+.job-categories-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .job-categories {
   display: flex;
   justify-content: center;
@@ -356,6 +362,71 @@
   background: rgba(74, 144, 226, 0.2);
 }
 
+.mobile-category-dropdown {
+  display: none;
+}
+
+.industry-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  background: var(--glassmorphism-bg);
+  border: 1px solid var(--neutral-200);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dropdown-toggle .dropdown-icon {
+  color: var(--primary-300);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--neutral-200);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  z-index: 10;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-item:hover, 
+.dropdown-item.active {
+  background-color: var(--primary-50);
+  color: var(--primary-300);
+}
+
+.dropdown-item svg {
+  color: var(--primary-300);
+  margin-right: 10px;
+}
+
 @media (max-width: 768px) {
   .job-grid {
     width: 100%;
@@ -370,9 +441,19 @@
     max-width: 100%;
   }
 }
+
 @media (max-width: 480px) {
   .advanced-job-feed {
     padding: 20px 10px;
+  }
+
+  .desktop-categories {
+    display: none;
+  }
+
+  .mobile-category-dropdown {
+    display: block;
+    margin-bottom: 20px;
   }
 
   .search-container input {
@@ -383,52 +464,6 @@
   .search-icon, .filter-icon {
     width: 20px;
     height: 20px;
-  }
-
-  .job-categories {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    justify-content: flex-start;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-  }
-
-  .job-categories::-webkit-scrollbar { /* WebKit */
-    width: 0;
-    height: 0;
-  }
-
-  .category-btn {
-    padding: 8px 15px;
-    min-width: 120px;
-    justify-content: center;
-  }
-
-  .job-grid {
-    gap: 15px;
-  }
-
-  .job-card {
-    padding: 15px;
-  }
-
-  .job-card-content h3 {
-    font-size: 18px;
-  }
-
-  .job-details {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-  }
-
-  .job-card-actions {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .btn-quick-apply, .btn-details {
-    width: 100%;
   }
 
   .auth-buttons {
