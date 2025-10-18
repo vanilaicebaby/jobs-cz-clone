@@ -11,7 +11,9 @@ import {
   Briefcase,
   UserPlus,
   LogIn,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import AuthModal from '../components/auth/AuthModal';
 import config from '../config';
@@ -312,19 +314,28 @@ function AdvancedJobFeed() {
 
         {jobs.length > 0 && (
           <div className="job-pagination">
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </button>
-            <span>Page {currentPage}</span>
-            <button 
-              onClick={() => setCurrentPage(prev => prev + 1)}
-              disabled={jobs.length < 10}
-            >
-              Next
-            </button>
+            <div className="pagination-controls">
+              <button 
+                className="pagination-prev"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <div className="pagination-info">
+                <span className="current-page">Page {currentPage}</span>
+                {totalJobs > 0 && (
+                  <span className="total-jobs">of {Math.ceil(totalJobs / 10)} ({totalJobs} total jobs)</span>
+                )}
+              </div>
+              <button 
+                className="pagination-next"
+                onClick={() => setCurrentPage(prev => prev + 1)}
+                disabled={currentPage >= Math.ceil(totalJobs / 10)}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
         )}
       </div>
