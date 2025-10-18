@@ -4,10 +4,52 @@
   --glassmorphism-border: rgba(255, 255, 255, 0.3);
 }
 
+/* Flame Animations */
+@keyframes flame-flicker {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.1); }
+}
+
+@keyframes low-flame {
+  0%, 100% { color: #ff6b6b; }
+  50% { color: #ff9999; }
+}
+
+@keyframes medium-flame {
+  0%, 100% { color: #ff9900; }
+  50% { color: #ffcc00; }
+}
+
+@keyframes high-flame {
+  0%, 100% { color: #ff4500; }
+  50% { color: #ff6347; }
+}
+
 .advanced-job-feed {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
   padding: 40px 20px;
+  position: relative;
+}
+
+/* Flame icon animation classes */
+.job-hotness-flame {
+  animation: flame-flicker 1s infinite;
+}
+
+.low-flame {
+  animation: low-flame 2s infinite, flame-flicker 1s infinite;
+  color: #ff6b6b;
+}
+
+.medium-flame {
+  animation: medium-flame 1.5s infinite, flame-flicker 1s infinite;
+  color: #ff9900;
+}
+
+.high-flame {
+  animation: high-flame 1s infinite, flame-flicker 1s infinite;
+  color: #ff4500;
 }
 
 .auth-buttons {
@@ -225,8 +267,17 @@
 
 .job-hotness-indicator {
   height: 5px;
-  background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
   border-radius: 10px;
+}
+
+.job-card-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.company-rating {
+  margin-top: 5px;
 }
 
 .job-card-content h3 {

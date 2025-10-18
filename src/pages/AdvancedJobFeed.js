@@ -40,6 +40,23 @@ const getDynamicEmoji = (job) => {
   return emojis[matchedEmojiKey] || emojis['default'];
 };
 
+// Dynamic Flame Icon with Animation
+const AnimatedFlameIcon = ({ hotness }) => {
+  // Map hotness to intensity of flame
+  const getFlameIntensity = (hotness) => {
+    if (hotness < 30) return 'low-flame';
+    if (hotness < 70) return 'medium-flame';
+    return 'high-flame';
+  };
+
+  return (
+    <Flame 
+      className={`job-hotness-flame ${getFlameIntensity(hotness)}`} 
+      size={24} 
+    />
+  );
+};
+
 // Mock data - enhanced
 const ENHANCED_MOCK_JOBS = [
   {
@@ -116,7 +133,7 @@ function AdvancedJobFeed() {
         <div className="job-card-badges">
           {job.featured && (
             <span className="badge featured-badge">
-              <Flame size={16} /> Featured
+              <AnimatedFlameIcon hotness={job.hotness} /> Featured
             </span>
           )}
           {job.matched && (
@@ -126,7 +143,15 @@ function AdvancedJobFeed() {
           )}
         </div>
         <div className="job-card-meta">
-          <div className="job-hotness-indicator" style={{width: `${job.hotness}%`}}></div>
+          <div 
+            className="job-hotness-indicator" 
+            style={{
+              width: `${job.hotness}%`, 
+              background: `linear-gradient(90deg, 
+                hsl(${Math.max(0, 120 * (job.hotness / 100))}, 70%, 50%), 
+                hsl(${Math.max(0, 120 * (job.hotness / 100))}, 100%, 40%))`
+            }}
+          ></div>
           <span className="company-rating">⭐ {job.companyRating}/5</span>
         </div>
       </div>
