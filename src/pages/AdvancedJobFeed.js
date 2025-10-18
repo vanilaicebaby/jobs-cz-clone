@@ -119,7 +119,15 @@ const IndustryDropdown = ({ categories, selectedCategory, onSelect }) => {
         onClick={() => setIsOpen(!isOpen)}
       >
         {selectedCategory 
-          ? categories.find(cat => cat.name === selectedCategory)?.name || 'Select Industry'
+          ? (() => {
+              const selectedCat = categories.find(cat => cat.name === selectedCategory);
+              return (
+                <div className="dropdown-selected-category">
+                  {selectedCat?.icon}
+                  {selectedCat?.name}
+                </div>
+              );
+            })()
           : 'All Industries'
         }
         <ChevronDown size={20} className="dropdown-icon" />
@@ -144,8 +152,10 @@ const IndustryDropdown = ({ categories, selectedCategory, onSelect }) => {
                 setIsOpen(false);
               }}
             >
-              {category.icon}
-              {category.name}
+              <div className="dropdown-item-content">
+                {category.icon}
+                {category.name}
+              </div>
             </button>
           ))}
         </div>
