@@ -1,0 +1,178 @@
+/* Auth Modal Styles */
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.auth-modal {
+  background: white;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 450px;
+  padding: 30px;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: var(--neutral-400);
+  cursor: pointer;
+}
+
+.auth-modal h2 {
+  text-align: center;
+  color: var(--primary-300);
+  margin-bottom: 20px;
+}
+
+.social-login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.social-login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 5px;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.social-login-button:hover {
+  background-color: var(--neutral-50);
+}
+
+.social-login-icon {
+  margin-right: 10px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.auth-divider-line {
+  flex-grow: 1;
+  height: 1px;
+  background-color: var(--neutral-200);
+}
+
+.auth-divider-text {
+  margin: 0 15px;
+  color: var(--neutral-400);
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--neutral-700);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.error-message {
+  background-color: var(--red-50);
+  border: 1px solid var(--red-200);
+  color: var(--red-700);
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.auth-submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-300);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 15px;
+}
+
+.auth-submit-btn:hover {
+  background-color: var(--primary-400);
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 15px;
+  color: var(--neutral-600);
+}
+
+.auth-switch button {
+  background: none;
+  border: none;
+  color: var(--primary-300);
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: underline;
+  padding: 0;
+  margin-left: 5px;
+}
+
+.forgot-password {
+  text-align: right;
+  margin-top: -10px;
+  margin-bottom: 15px;
+}
+
+.forgot-password a {
+  color: var(--primary-300);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .auth-modal {
+    width: 95%;
+    margin: 0 10px;
+    padding: 20px;
+  }
+
+  .social-login-button {
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .social-login-icon {
+    margin-right: 5px;
+  }
+}

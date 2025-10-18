@@ -8,10 +8,13 @@ import {
   Filter, 
   CheckCircle,
   TrendingUp,
-  Briefcase
+  Briefcase,
+  UserPlus,
+  LogIn
 } from 'lucide-react';
+import AuthModal from '../components/auth/AuthModal';
 
-// Mock data - rozšířené
+// Mock data - enhanced
 const ENHANCED_MOCK_JOBS = [
   {
     id: '1',
@@ -91,6 +94,8 @@ function AdvancedJobFeed() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [filteredJobs, setFilteredJobs] = useState(ENHANCED_MOCK_JOBS);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
 
   useEffect(() => {
     const filtered = ENHANCED_MOCK_JOBS.filter(job => 
@@ -153,6 +158,35 @@ function AdvancedJobFeed() {
 
   return (
     <div className="advanced-job-feed">
+      {isAuthModalOpen && (
+        <AuthModal 
+          isOpen={isAuthModalOpen} 
+          onClose={() => setIsAuthModalOpen(false)}
+          initialMode={authMode}
+        />
+      )}
+
+      <div className="auth-buttons">
+        <button 
+          className="login-btn" 
+          onClick={() => {
+            setAuthMode('login');
+            setIsAuthModalOpen(true);
+          }}
+        >
+          <LogIn size={20} /> Login
+        </button>
+        <button 
+          className="register-btn" 
+          onClick={() => {
+            setAuthMode('register');
+            setIsAuthModalOpen(true);
+          }}
+        >
+          <UserPlus size={20} /> Register
+        </button>
+      </div>
+
       <div className="job-feed-hero">
         <h1>Find Your Dream Job</h1>
         <div className="search-container">
