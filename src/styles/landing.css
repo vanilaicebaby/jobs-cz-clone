@@ -19,6 +19,13 @@
   text-align: center;
   color: var(--primary-300);
   margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.landing-subtitle {
+  text-align: center;
+  color: var(--neutral-600);
+  margin-bottom: 20px;
 }
 
 .tab-container {
@@ -39,6 +46,10 @@
 .tab-button.active {
   background-color: var(--primary-300);
   color: white;
+}
+
+.social-login-buttons {
+  margin-bottom: 20px;
 }
 
 .social-login-button {
@@ -63,19 +74,37 @@
   margin-right: 10px;
 }
 
-.divider {
+.landing-divider {
   display: flex;
   align-items: center;
   margin: 20px 0;
 }
 
-.divider-line {
+.landing-divider-line {
   flex-grow: 1;
   height: 1px;
   background-color: var(--neutral-200);
 }
 
-.divider-text {
+.landing-divider-text {
   margin: 0 15px;
   color: var(--neutral-400);
+}
+
+.main-action-button {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--primary-300);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.main-action-button:hover {
+  background-color: var(--primary-400);
 }

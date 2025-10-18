@@ -1,9 +1,125 @@
 .job-feed {
-  padding: 20px;
+  min-height: 100vh;
+  background-color: var(--neutral-50);
 }
 
-.job-search {
+.job-feed-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px 15px;
+}
+
+.job-search-container {
+  position: relative;
   margin-bottom: 20px;
 }
 
-/* Další styly pro feed stránku */
+.job-search-input {
+  width: 100%;
+  padding: 12px 15px 12px 40px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.job-search-input:focus {
+  outline: none;
+  border-color: var(--primary-300);
+  box-shadow: 0 0 0 2px rgba(10, 102, 194, 0.1);
+}
+
+.job-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--neutral-300);
+}
+
+.job-search-filter {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--neutral-300);
+  cursor: pointer;
+}
+
+.job-categories {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.job-category-button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 20px;
+  background-color: var(--neutral-100);
+  color: var(--neutral-700);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.job-category-button.active {
+  background-color: var(--primary-300);
+  color: white;
+}
+
+.job-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.job-card {
+  background-color: white;
+  border: 1px solid var(--neutral-100);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: box-shadow 0.3s ease;
+}
+
+.job-card:hover {
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.job-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.job-card-title {
+  font-size: 18px;
+  color: var(--primary-300);
+  font-weight: bold;
+}
+
+.job-card-details {
+  color: var(--neutral-600);
+}
+
+.job-card-tags {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.job-card-tag {
+  padding: 4px 8px;
+  background-color: var(--primary-50);
+  color: var(--primary-300);
+  border-radius: 15px;
+  font-size: 12px;
+}
+
+.job-no-results {
+  text-align: center;
+  padding: 50px 0;
+  color: var(--neutral-500);
+}
