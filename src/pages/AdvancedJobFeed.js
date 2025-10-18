@@ -14,6 +14,11 @@ import {
   ChevronDown
 } from 'lucide-react';
 import AuthModal from '../components/auth/AuthModal';
+import config from '../config';
+
+// API endpoint now uses the config
+const API_BASE_URL = config.apiBaseUrl;
+
 
 // Dynamic Emoji Generator
 const getDynamicEmoji = (job) => {
@@ -43,7 +48,6 @@ const getDynamicEmoji = (job) => {
 
 // Dynamic Flame Icon with Animation
 const AnimatedFlameIcon = ({ hotness }) => {
-  // Map hotness to intensity of flame
   const getFlameIntensity = (hotness) => {
     if (hotness < 30) return 'low-flame';
     if (hotness < 70) return 'medium-flame';
@@ -57,49 +61,6 @@ const AnimatedFlameIcon = ({ hotness }) => {
     />
   );
 };
-
-// Enhanced Mock Jobs
-const ENHANCED_MOCK_JOBS = [
-  {
-    id: '1',
-    title: 'Senior Frontend Developer',
-    company: 'Tech Innovators Inc.',
-    location: 'San Francisco, CA',
-    salary: '$120,000 - $180,000',
-    tags: ['React', 'TypeScript', 'Web3', 'Frontend'],
-    featured: true,
-    matched: true,
-    hotness: 95,
-    companyRating: 4.8,
-    description: 'Revolutionary startup seeking top-tier frontend talent to build next-gen web applications.'
-  },
-  {
-    id: '2',
-    title: 'AI Research Scientist',
-    company: 'DeepMind Solutions',
-    location: 'New York, NY',
-    salary: '$180,000 - $250,000',
-    tags: ['Machine Learning', 'Python', 'Deep Learning', 'AI'],
-    featured: true,
-    matched: false,
-    hotness: 88,
-    companyRating: 4.9,
-    description: 'Cutting-edge AI research position pushing the boundaries of machine intelligence.'
-  },
-  {
-    id: '3',
-    title: 'Product Manager',
-    company: 'Growth Dynamics LLC',
-    location: 'Remote',
-    salary: '$100,000 - $150,000',
-    tags: ['Product Strategy', 'Agile', 'Leadership', 'Product'],
-    featured: false,
-    matched: true,
-    hotness: 75,
-    companyRating: 4.5,
-    description: 'Seeking a strategic product leader to drive innovation and user-centric design.'
-  }
-];
 
 const INDUSTRY_CATEGORIES = [
   { name: 'Tech', icon: <Zap className="category-icon" /> },
@@ -167,49 +128,58 @@ const IndustryDropdown = ({ categories, selectedCategory, onSelect }) => {
 function AdvancedJobFeed() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [filteredJobs, setFilteredJobs] = useState(ENHANCED_MOCK_JOBS);
+  const [jobs, setJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [totalJobs, setTotalJobs] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const filtered = ENHANCED_MOCK_JOBS.filter(job => 
-      (job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       job.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) &&
-      (selectedCategory ? job.tags.some(tag => tag.toLowerCase().includes(selectedCategory.toLowerCase())) : true)
-    );
-    setFilteredJobs(filtered);
-  }, [searchTerm, selectedCategory]);
+    fetchJobs();
+  }, [searchTerm, selectedCategory, currentPage]);
+
+  const fetchJobs = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Konstruujte URL s parametry pro vyhledávání a filtrování
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedCategory) params.append('industry', selectedCategory);
+      params.append('page', currentPage);
+      params.append('limit', 10);
+
+      const response = await fetch(`${API_BASE_URL}?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error('Nepodařilo se načíst pracovní nabídky');
+      }
+
+      const data = await response.json();
+      
+      setJobs(data.jobs);
+      setTotalJobs(data.totalJobs);
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Chyba při načítání pracovních nabídek:', err);
+      setError(err.message);
+      setIsLoading(false);
+    }
+  };
 
   const renderJobCard = (job) => (
     <div 
-      key={job.id} 
-      className={`job-card ${job.featured ? 'featured-job' : ''} ${job.matched ? 'matched-job' : ''}`}
+      key={job._id} 
+      className={`job-card`}
     >
       <div className="job-card-header">
         <div className="job-card-badges">
-          {job.featured && (
-            <span className="badge featured-badge">
-              <AnimatedFlameIcon hotness={job.hotness} /> Featured
-            </span>
-          )}
-          {job.matched && (
-            <span className="badge matched-badge">
-              <TrendingUp size={16} /> Matched for You
-            </span>
-          )}
-        </div>
-        <div className="job-card-meta">
-          <div 
-            className="job-hotness-indicator" 
-            style={{
-              width: `${job.hotness}%`, 
-              background: `linear-gradient(90deg, 
-                hsl(${Math.max(0, 120 * (job.hotness / 100))}, 70%, 50%), 
-                hsl(${Math.max(0, 120 * (job.hotness / 100))}, 100%, 40%))`
-            }}
-          ></div>
-          <span className="company-rating">⭐ {job.companyRating}/5</span>
+          <span className="badge matched-badge">
+            <TrendingUp size={16} /> Matched for You
+          </span>
         </div>
       </div>
 
@@ -328,16 +298,39 @@ function AdvancedJobFeed() {
       </div>
 
       <div className="job-results">
-        <h2>Hot Jobs 🔥 <span className="job-count">({filteredJobs.length} positions)</span></h2>
+        <h2>Hot Jobs 🔥 <span className="job-count">({totalJobs} positions)</span></h2>
         
-        {filteredJobs.length > 0 ? (
+        {isLoading ? (
+          <div className="loading-spinner">Načítání...</div>
+        ) : error ? (
+          <div className="error-message">{error}</div>
+        ) : jobs.length > 0 ? (
           <div className="job-grid">
-            {filteredJobs.map(renderJobCard)}
+            {jobs.map(renderJobCard)}
           </div>
         ) : (
           <div className="no-jobs-found">
             <Briefcase size={64} />
             <p>No jobs match your search criteria</p>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {jobs.length > 0 && (
+          <div className="job-pagination">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            <span>Page {currentPage}</span>
+            <button 
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              disabled={jobs.length < 10}
+            >
+              Next
+            </button>
           </div>
         )}
       </div>
