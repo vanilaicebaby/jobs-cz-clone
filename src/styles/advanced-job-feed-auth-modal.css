@@ -1,34 +1,43 @@
-/* Additional Auth Modal Styles */
-.forgot-password {
-  text-align: right;
-  margin-top: -10px;
-  margin-bottom: 15px;
+/* Advanced Job Feed Styles */
+.auth-buttons {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 15px;
 }
 
-.forgot-password a {
+.login-btn, .register-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.login-btn {
+  background-color: transparent;
   color: var(--primary-300);
-  text-decoration: none;
-  font-size: 0.9rem;
+  border: 1px solid var(--primary-300);
 }
 
-.forgot-password a:hover {
-  text-decoration: underline;
+.login-btn:hover {
+  background-color: rgba(10, 102, 194, 0.1);
 }
 
-@media (max-width: 480px) {
-  .auth-modal {
-    width: 95%;
-    margin: 0 10px;
-    padding: 20px;
-  }
+.register-btn {
+  background-color: var(--primary-300);
+  color: white;
+}
 
-  .social-login-button {
-    padding: 8px;
-    font-size: 0.9rem;
-  }
+.register-btn:hover {
+  background-color: var(--primary-400);
+}
 
-  .social-login-icon {
-    margin-right: 5px;
-    size: 16;
-  }
+.login-btn svg, .register-btn svg {
+  margin-right: 5px;
 }

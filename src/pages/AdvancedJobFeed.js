@@ -14,6 +14,32 @@ import {
 } from 'lucide-react';
 import AuthModal from '../components/auth/AuthModal';
 
+// Dynamic Emoji Generator
+const getDynamicEmoji = (job) => {
+  const emojis = {
+    'Frontend': '💻',
+    'Backend': '🖥️',
+    'AI': '🤖',
+    'Data': '📊',
+    'Product': '🚀',
+    'Design': '🎨',
+    'Marketing': '📈',
+    'Sales': '💼',
+    'Finance': '💰',
+    'Healthcare': '🏥',
+    'default': '💡'
+  };
+
+  // Find the first matching tag or return default
+  const matchedEmojiKey = job.tags.find(tag => 
+    Object.keys(emojis).some(key => 
+      tag.toLowerCase().includes(key.toLowerCase())
+    )
+  );
+
+  return emojis[matchedEmojiKey] || emojis['default'];
+};
+
 // Mock data - enhanced
 const ENHANCED_MOCK_JOBS = [
   {
@@ -22,7 +48,7 @@ const ENHANCED_MOCK_JOBS = [
     company: 'Tech Innovators Inc.',
     location: 'San Francisco, CA',
     salary: '$120,000 - $180,000',
-    tags: ['React', 'TypeScript', 'Web3'],
+    tags: ['React', 'TypeScript', 'Web3', 'Frontend'],
     featured: true,
     matched: true,
     hotness: 95,
@@ -35,7 +61,7 @@ const ENHANCED_MOCK_JOBS = [
     company: 'DeepMind Solutions',
     location: 'New York, NY',
     salary: '$180,000 - $250,000',
-    tags: ['Machine Learning', 'Python', 'Deep Learning'],
+    tags: ['Machine Learning', 'Python', 'Deep Learning', 'AI'],
     featured: true,
     matched: false,
     hotness: 88,
@@ -48,38 +74,12 @@ const ENHANCED_MOCK_JOBS = [
     company: 'Growth Dynamics LLC',
     location: 'Remote',
     salary: '$100,000 - $150,000',
-    tags: ['Product Strategy', 'Agile', 'Leadership'],
+    tags: ['Product Strategy', 'Agile', 'Leadership', 'Product'],
     featured: false,
     matched: true,
     hotness: 75,
     companyRating: 4.5,
     description: 'Seeking a strategic product leader to drive innovation and user-centric design.'
-  },
-  {
-    id: '4',
-    title: 'Cloud Infrastructure Engineer',
-    company: 'CloudNative Systems',
-    location: 'Seattle, WA',
-    salary: '$140,000 - $200,000',
-    tags: ['AWS', 'Kubernetes', 'DevOps'],
-    featured: false,
-    matched: false,
-    hotness: 82,
-    companyRating: 4.6,
-    description: 'Build and scale next-generation cloud infrastructure for global enterprise solutions.'
-  },
-  {
-    id: '5',
-    title: 'UX Research Lead',
-    company: 'Design Innovations',
-    location: 'Austin, TX',
-    salary: '$110,000 - $170,000',
-    tags: ['UX Research', 'Design Thinking', 'User Insights'],
-    featured: true,
-    matched: true,
-    hotness: 90,
-    companyRating: 4.7,
-    description: 'Lead UX research initiatives to create breakthrough user experiences.'
   }
 ];
 
@@ -132,7 +132,7 @@ function AdvancedJobFeed() {
       </div>
 
       <div className="job-card-content">
-        <h3>{job.title}</h3>
+        <h3>{getDynamicEmoji(job)} {job.title}</h3>
         <p className="job-company">{job.company}</p>
         
         <div className="job-details">
