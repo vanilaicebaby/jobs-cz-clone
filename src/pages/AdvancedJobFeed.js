@@ -213,7 +213,24 @@ function AdvancedJobFeed() {
       </div>
 
       <div className="job-feed-hero">
-        <h1>Find Your Dream Job</h1>
+        <img 
+          src="/logo.png" 
+          alt="Workuj Logo" 
+          className="workuj-logo" 
+          style={{
+            maxWidth: '250px',
+            marginBottom: '20px',
+            display: 'block',
+            margin: '0 auto'
+          }}
+        />
+        <p className="job-feed-subtitle" style={{
+          textAlign: 'center',
+          color: 'var(--neutral-600)',
+          marginBottom: '20px'
+        }}>
+          Najdi si svou prací snů
+        </p>
         <div className="search-container">
           <Search className="search-icon" />
           <input 
