@@ -47,19 +47,15 @@ function AuthModal({ isOpen, onClose, initialMode = 'login', onLogin }) {
       const data = await response.json();
 
       if (response.ok) {
-        // Úspěšné přihlášení/registrace
         localStorage.setItem('token', data.token);
         
-        // Volání onLogin props, pokud existuje
         if (onLogin) {
           onLogin();
         }
 
-        // Zavření modálu a přesměrování na feed
         onClose();
         navigate('/feed');
       } else {
-        // Chyba přihlášení/registrace
         setError(data.message || 'Něco se pokazilo');
       }
     } catch (err) {
@@ -71,8 +67,11 @@ function AuthModal({ isOpen, onClose, initialMode = 'login', onLogin }) {
   };
 
   const handleSocialLogin = (provider) => {
-    // Zde byste implementovali logiku sociálního přihlášení
     alert(`Sociální přihlášení přes ${provider} není implementováno`);
+  };
+
+  const handleForgotPassword = () => {
+    alert('Funkce zapomenutého hesla není implementována');
   };
 
   if (!isOpen) return null;
@@ -144,7 +143,13 @@ function AuthModal({ isOpen, onClose, initialMode = 'login', onLogin }) {
 
           {mode === 'login' && (
             <div className="forgot-password">
-              <a href="#">Zapomenuté heslo?</a>
+              <button 
+                type="button"
+                onClick={handleForgotPassword}
+                className="forgot-password-link"
+              >
+                Zapomenuté heslo?
+              </button>
             </div>
           )}
 

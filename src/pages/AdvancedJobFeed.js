@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Search, 
   MapPin, 
-  Flame, 
   Zap, 
   Award, 
   Filter, 
@@ -18,10 +17,8 @@ import {
 import AuthModal from '../components/auth/AuthModal';
 import config from '../config';
 
-// API endpoint now uses the config
 const API_BASE_URL = config.apiBaseUrl;
 
-// Dynamic Emoji Generator
 const getDynamicEmoji = (job) => {
   const emojis = {
     'Frontend': '💻',
@@ -37,7 +34,6 @@ const getDynamicEmoji = (job) => {
     'default': '💡'
   };
 
-  // Find the first matching tag or return default
   const matchedEmojiKey = job.tags?.find(tag => 
     Object.keys(emojis).some(key => 
       tag.toLowerCase().includes(key.toLowerCase())
@@ -47,7 +43,6 @@ const getDynamicEmoji = (job) => {
   return emojis[matchedEmojiKey] || emojis['default'];
 };
 
-// Dynamic Categories
 const INDUSTRY_CATEGORIES = [
   { name: 'Tech', icon: <Zap className="category-icon" /> },
   { name: 'Finance', icon: <Award className="category-icon" /> },
@@ -55,7 +50,6 @@ const INDUSTRY_CATEGORIES = [
   { name: 'Product', icon: <Briefcase className="category-icon" /> },
 ];
 
-// Dropdown component for mobile view
 const IndustryDropdown = ({ categories, selectedCategory, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -122,16 +116,7 @@ function AdvancedJobFeed() {
   const [authMode, setAuthMode] = useState('login');
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    console.log('Fetching jobs with params:', {
-      searchTerm, 
-      selectedCategory, 
-      currentPage
-    });
-    fetchJobs();
-  }, [searchTerm, selectedCategory, currentPage]);
-
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -157,7 +142,6 @@ function AdvancedJobFeed() {
       
       console.log('API Response:', data);
 
-      // Flexible data handling
       const jobsData = data.jobs || data.data || data;
       setJobs(jobsData);
       setTotalJobs(data.totalJobs || data.total || jobsData.length);
@@ -167,7 +151,11 @@ function AdvancedJobFeed() {
       setError(err.message);
       setIsLoading(false);
     }
-  };
+  }, [searchTerm, selectedCategory, currentPage]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
   const renderJobCard = (job) => (
     <div 

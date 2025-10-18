@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import AdvancedJobFeed from './pages/AdvancedJobFeed';
 import LandingPage from './pages/LandingPage';
@@ -9,7 +9,6 @@ import './index.css';
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState('login');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const openAuthModal = (mode) => {
     setAuthMode(mode);
@@ -21,13 +20,7 @@ function App() {
   };
 
   const handleLogin = () => {
-    setIsAuthenticated(true);
     closeAuthModal();
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('token');
   };
 
   return (
@@ -42,7 +35,6 @@ function App() {
           />
         )}
         <Routes>
-          {/* AdvancedJobFeed je nyní výchozí stránkou */}
           <Route 
             path="/" 
             element={<AdvancedJobFeed openAuthModal={openAuthModal} />} 
