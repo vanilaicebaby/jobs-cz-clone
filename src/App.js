@@ -7,7 +7,7 @@ import FeedPage from './pages/FeedPage';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-neutral-50 text-neutral-900">
+      <div>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />

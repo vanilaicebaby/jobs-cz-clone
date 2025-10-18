@@ -1,0 +1,9 @@
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--primary-50), white);
+}
+
+/* Další styly pro login stránku */
