@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 import config from '../config';
 
-function LoginPage() {
+function LoginPage({ openAuthModal, onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
-      // Implementujte volání API pro přihlášení
       const response = await fetch(`${config.apiBaseUrl}/login`, {
         method: 'POST',
         headers: {
@@ -25,21 +27,42 @@ function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Úspěšné přihlášení - uložení tokenu, přesměrování apod.
+        // Úspěšné přihlášení
         localStorage.setItem('token', data.token);
+        
+        // Volání onLogin prop
+        if (onLogin) {
+          onLogin();
+        }
+
+        // Přesměrování na feed
         navigate('/feed');
       } else {
         // Chyba přihlášení
-        setError(data.message || 'Login failed');
+        setError(data.message || 'Přihlášení selhalo');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('An error occurred during login');
+      setError('Nastala chyba při připojení k serveru');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleForgotPassword = () => {
+    // Zde byste implementovali logiku zapomenutého hesla
+    alert('Funkce resetování hesla není implementována');
   };
 
   return (
     <div className="login-page">
+      <button 
+        className="back-button"
+        onClick={() => navigate('/')}
+      >
+        <ChevronLeft size={24} /> Zpět
+      </button>
+
       <div className="login-container">
         <h1 className="login-title">Přihlášení</h1>
         <p className="login-subtitle">Zadejte své přihlašovací údaje</p>
@@ -57,6 +80,7 @@ function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -70,26 +94,46 @@ function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
 
           <div className="login-actions">
             <div className="remember-me">
-              <input type="checkbox" id="remember" />
+              <input 
+                type="checkbox" 
+                id="remember" 
+                disabled={isLoading}
+              />
               <label htmlFor="remember">Zapamatovat</label>
             </div>
-            <button type="button" className="forgot-password">Zapomenuté heslo?</button>
+            <button 
+              type="button" 
+              className="forgot-password"
+              onClick={handleForgotPassword}
+              disabled={isLoading}
+            >
+              Zapomenuté heslo?
+            </button>
           </div>
 
           <button 
             type="submit" 
             className="login-button"
+            disabled={isLoading}
           >
-            Přihlásit se
+            {isLoading ? 'Přihlašování...' : 'Přihlásit se'}
           </button>
 
           <div className="register-link">
-            Nemáte účet? <button type="button" onClick={() => navigate('/')}>Zaregistrujte se</button>
+            Nemáte účet? 
+            <button 
+              type="button" 
+              onClick={() => openAuthModal('register')}
+              disabled={isLoading}
+            >
+              Zaregistrujte se
+            </button>
           </div>
         </form>
       </div>

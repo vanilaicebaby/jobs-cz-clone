@@ -6,53 +6,175 @@ import {
   Mail, 
   X 
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import config from '../../config';
 
-// Nahraďte mock uživatele buď prázdným polem, nebo odstraňte úplně
-const MOCK_USERS = [
-  {
-    email: 'test@example.com',
-    password: 'heslo123'
-  }
-];
-
-function AuthModal({ isOpen, onClose, initialMode = 'login' }) {
+function AuthModal({ isOpen, onClose, initialMode = 'login', onLogin }) {
   const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const socialProviders = [
+    { icon: ChromeIcon, text: 'Pokračovat s Google', provider: 'google' },
+    { icon: Apple, text: 'Pokračovat s Apple', provider: 'apple' },
+    { icon: Linkedin, text: 'Pokračovat s LinkedIn', provider: 'linkedin' },
+    { icon: Mail, text: 'Pokračovat s Outlookem', provider: 'outlook' }
+  ];
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    if (mode === 'login') {
-      const user = MOCK_USERS.find(
-        u => u.email === email && u.password === password
-      );
+    try {
+      const endpoint = mode === 'login' ? '/login' : '/register';
+      const payload = mode === 'login' 
+        ? { email, password }
+        : { email, password, confirmPassword };
 
-      if (user) {
-        // Zde byste měli implementovat skutečné přihlášení přes API
-        alert('Login successful!');
+      const response = await fetch(`${config.apiBaseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Úspěšné přihlášení/registrace
+        localStorage.setItem('token', data.token);
+        
+        // Volání onLogin props, pokud existuje
+        if (onLogin) {
+          onLogin();
+        }
+
+        // Zavření modálu a přesměrování na feed
         onClose();
+        navigate('/feed');
       } else {
-        setError('Invalid email or password');
+        // Chyba přihlášení/registrace
+        setError(data.message || 'Něco se pokazilo');
       }
-    } else {
-      // Registrační logika
-      if (password !== confirmPassword) {
-        setError('Passwords do not match');
-        return;
-      }
-
-      // Zde byste měli implementovat registraci přes API
-      alert('Registration would be handled by API');
-      setMode('login');
+    } catch (err) {
+      console.error('Authentication error:', err);
+      setError('Nastala chyba při připojení k serveru');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Zbytek kódu zůstává stejný
-  // ...
+  const handleSocialLogin = (provider) => {
+    // Zde byste implementovali logiku sociálního přihlášení
+    alert(`Sociální přihlášení přes ${provider} není implementováno`);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="auth-modal-overlay">
+      <div className="auth-modal">
+        <button className="close-modal" onClick={onClose}>
+          <X size={24} />
+        </button>
+        <h2>{mode === 'login' ? 'Přihlášení' : 'Registrace'}</h2>
+
+        <div className="social-login-buttons">
+          {socialProviders.map((provider, index) => (
+            <button 
+              key={index} 
+              className="social-login-button"
+              onClick={() => handleSocialLogin(provider.provider)}
+            >
+              <provider.icon className="social-login-icon" size={20} />
+              {provider.text}
+            </button>
+          ))}
+        </div>
+
+        <div className="auth-divider">
+          <div className="auth-divider-line"></div>
+          <span className="auth-divider-text">nebo</span>
+          <div className="auth-divider-line"></div>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="form-group">
+            <label>Email</label>
+            <input 
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required 
+              disabled={isLoading}
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Heslo</label>
+            <input 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required 
+              disabled={isLoading}
+            />
+          </div>
+
+          {mode === 'register' && (
+            <div className="form-group">
+              <label>Potvrzení hesla</label>
+              <input 
+                type="password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required 
+                disabled={isLoading}
+              />
+            </div>
+          )}
+
+          {mode === 'login' && (
+            <div className="forgot-password">
+              <a href="#">Zapomenuté heslo?</a>
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            className="auth-submit-btn" 
+            disabled={isLoading}
+          >
+            {isLoading 
+              ? (mode === 'login' ? 'Přihlašování...' : 'Registrace...') 
+              : (mode === 'login' ? 'Přihlásit se' : 'Zaregistrovat se')
+            }
+          </button>
+
+          <div className="auth-switch">
+            {mode === 'login' 
+              ? 'Nemáte účet?' 
+              : 'Máte již účet?'}
+            <button 
+              type="button" 
+              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+              disabled={isLoading}
+            >
+              {mode === 'login' ? 'Zaregistrujte se' : 'Přihlaste se'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 export default AuthModal;

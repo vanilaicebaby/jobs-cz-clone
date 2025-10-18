@@ -116,6 +116,7 @@
 .button-icon {
   margin-right: 5px;
 }
+
 @media (max-width: 480px) {
   .landing-container {
     width: 95%;

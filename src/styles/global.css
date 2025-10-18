@@ -87,3 +87,48 @@ body {
   border-radius: 5px;
   margin-bottom: 15px;
 }
+
+/* Přidáme specifické styly pro sociální tlačítka */
+.social-login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.social-login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--neutral-200);
+  border-radius: 5px;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.social-login-button:hover {
+  background-color: var(--neutral-50);
+}
+
+.social-login-icon {
+  margin-right: 10px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.divider-line {
+  flex-grow: 1;
+  height: 1px;
+  background-color: var(--neutral-200);
+}
+
+.divider-text {
+  margin: 0 15px;
+  color: var(--neutral-400);
+}
