@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MOCK_USERS } from '../utils/mockData';
+import config from '../config';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -8,20 +8,33 @@ function LoginPage() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Mockup přihlášení
-    const user = MOCK_USERS.find(
-      u => u.email === email && u.password === password
-    );
+    try {
+      // Implementujte volání API pro přihlášení
+      const response = await fetch(`${config.apiBaseUrl}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
+      });
 
-    if (user) {
-      // Úspěšné přihlášení - přesměrování na feed
-      navigate('/feed');
-    } else {
-      setError('Neplatný email nebo heslo');
+      const data = await response.json();
+
+      if (response.ok) {
+        // Úspěšné přihlášení - uložení tokenu, přesměrování apod.
+        localStorage.setItem('token', data.token);
+        navigate('/feed');
+      } else {
+        // Chyba přihlášení
+        setError(data.message || 'Login failed');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('An error occurred during login');
     }
   };
 

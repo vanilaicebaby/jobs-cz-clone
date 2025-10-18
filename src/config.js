@@ -11,7 +11,7 @@ const config = {
 };
 
 const getConfig = () => {
-  const env = process.env.NODE_ENV || 'development';
+  const env = process.env.REACT_APP_ENV || process.env.NODE_ENV || 'development';
   return config[env];
 };
 

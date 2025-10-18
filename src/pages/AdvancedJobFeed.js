@@ -19,7 +19,6 @@ import config from '../config';
 // API endpoint now uses the config
 const API_BASE_URL = config.apiBaseUrl;
 
-
 // Dynamic Emoji Generator
 const getDynamicEmoji = (job) => {
   const emojis = {
@@ -37,7 +36,7 @@ const getDynamicEmoji = (job) => {
   };
 
   // Find the first matching tag or return default
-  const matchedEmojiKey = job.tags.find(tag => 
+  const matchedEmojiKey = job.tags?.find(tag => 
     Object.keys(emojis).some(key => 
       tag.toLowerCase().includes(key.toLowerCase())
     )
@@ -46,22 +45,7 @@ const getDynamicEmoji = (job) => {
   return emojis[matchedEmojiKey] || emojis['default'];
 };
 
-// Dynamic Flame Icon with Animation
-const AnimatedFlameIcon = ({ hotness }) => {
-  const getFlameIntensity = (hotness) => {
-    if (hotness < 30) return 'low-flame';
-    if (hotness < 70) return 'medium-flame';
-    return 'high-flame';
-  };
-
-  return (
-    <Flame 
-      className={`job-hotness-flame ${getFlameIntensity(hotness)}`} 
-      size={24} 
-    />
-  );
-};
-
+// Dynamic Categories
 const INDUSTRY_CATEGORIES = [
   { name: 'Tech', icon: <Zap className="category-icon" /> },
   { name: 'Finance', icon: <Award className="category-icon" /> },
@@ -137,6 +121,11 @@ function AdvancedJobFeed() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('Fetching jobs with params:', {
+      searchTerm, 
+      selectedCategory, 
+      currentPage
+    });
     fetchJobs();
   }, [searchTerm, selectedCategory, currentPage]);
 
@@ -145,26 +134,34 @@ function AdvancedJobFeed() {
     setError(null);
 
     try {
-      // Konstruujte URL s parametry pro vyhledávání a filtrování
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (selectedCategory) params.append('industry', selectedCategory);
       params.append('page', currentPage);
       params.append('limit', 10);
 
-      const response = await fetch(`${API_BASE_URL}?${params.toString()}`);
+      const response = await fetch(`${API_BASE_URL}?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
       
       if (!response.ok) {
-        throw new Error('Nepodařilo se načíst pracovní nabídky');
+        throw new Error('Failed to fetch job listings');
       }
 
       const data = await response.json();
       
-      setJobs(data.jobs);
-      setTotalJobs(data.totalJobs);
+      console.log('API Response:', data);
+
+      // Flexible data handling
+      const jobsData = data.jobs || data.data || data;
+      setJobs(jobsData);
+      setTotalJobs(data.totalJobs || data.total || jobsData.length);
       setIsLoading(false);
     } catch (err) {
-      console.error('Chyba při načítání pracovních nabídek:', err);
+      console.error('Error fetching job listings:', err);
       setError(err.message);
       setIsLoading(false);
     }
@@ -172,7 +169,7 @@ function AdvancedJobFeed() {
 
   const renderJobCard = (job) => (
     <div 
-      key={job._id} 
+      key={job._id || job.id} 
       className={`job-card`}
     >
       <div className="job-card-header">
@@ -195,7 +192,7 @@ function AdvancedJobFeed() {
         <p className="job-description">{job.description}</p>
 
         <div className="job-tags">
-          {job.tags.map(tag => (
+          {(job.tags || []).map(tag => (
             <span key={tag} className="tag">{tag}</span>
           ))}
         </div>
@@ -271,7 +268,6 @@ function AdvancedJobFeed() {
       </div>
 
       <div className="job-categories-container">
-        {/* Desktop categories */}
         <div className="job-categories desktop-categories">
           {INDUSTRY_CATEGORIES.map(category => (
             <button 
@@ -287,7 +283,6 @@ function AdvancedJobFeed() {
           ))}
         </div>
 
-        {/* Mobile dropdown */}
         <div className="mobile-category-dropdown">
           <IndustryDropdown 
             categories={INDUSTRY_CATEGORIES}
@@ -315,7 +310,6 @@ function AdvancedJobFeed() {
           </div>
         )}
 
-        {/* Pagination */}
         {jobs.length > 0 && (
           <div className="job-pagination">
             <button 
