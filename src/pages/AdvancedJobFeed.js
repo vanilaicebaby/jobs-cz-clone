@@ -34,17 +34,18 @@ const getDynamicEmoji = (job) => {
     'default': '💡'
   };
 
-  // Pokud tags existuje a je pole
-  if (Array.isArray(job.tags)) {
-    const matchedEmojiKey = job.tags.find(tag => 
-      Object.keys(emojis).some(key => 
-        tag.toLowerCase().includes(key.toLowerCase())
-      )
-    );
+  // Bezpečné zpracování tagů
+  const tags = Array.isArray(job.tags) 
+    ? job.tags 
+    : (typeof job.tags === 'string' ? [job.tags] : []);
 
-    return emojis[matchedEmojiKey] || emojis['default'];
-  }
-    return emojis['default'];
+  const matchedEmojiKey = tags.find(tag => 
+    Object.keys(emojis).some(key => 
+      tag.toLowerCase().includes(key.toLowerCase())
+    )
+  );
+
+  return emojis[matchedEmojiKey] || emojis['default'];
 };
 
 const INDUSTRY_CATEGORIES = [
@@ -146,7 +147,9 @@ function AdvancedJobFeed() {
       
       console.log('API Response:', data);
 
-      const jobsData = data.jobs || data.data || data;
+      // Robustní extrakce dat
+      const jobsData = data.jobs || data.data || (Array.isArray(data) ? data : []);
+      
       setJobs(jobsData);
       setTotalJobs(data.totalJobs || data.total || jobsData.length);
       setIsLoading(false);
@@ -161,43 +164,57 @@ function AdvancedJobFeed() {
     fetchJobs();
   }, [fetchJobs]);
 
-  const renderJobCard = (job) => (
-    <div 
-      key={job._id || job.id} 
-      className={`job-card`}
-    >
-      <div className="job-card-header">
-        <div className="job-card-badges">
-          <span className="badge matched-badge">
-            <TrendingUp size={16} /> Matched for You
-          </span>
+  const renderJobCard = (job) => {
+    // Bezpečné zpracování dat jobu
+    const safeJob = {
+      id: job.id || job._id || 'unknown',
+      title: job.title || 'Nezadán',
+      company: job.company || 'Nezadána',
+      location: job.location || 'Neuvedena',
+      salary: job.salary || 'Mzda neuvedena',
+      tags: Array.isArray(job.tags) ? job.tags : (job.tags ? [job.tags] : []),
+      description: job.description || 'Žádný popis',
+      industry: job.industry || 'Neuvedeno'
+    };
+
+    return (
+      <div 
+        key={safeJob.id} 
+        className={`job-card`}
+      >
+        <div className="job-card-header">
+          <div className="job-card-badges">
+            <span className="badge matched-badge">
+              <TrendingUp size={16} /> Matched for You
+            </span>
+          </div>
+        </div>
+
+        <div className="job-card-content">
+          <h3>{getDynamicEmoji(safeJob)} {safeJob.title}</h3>
+          <p className="job-company">{safeJob.company}</p>
+          
+          <div className="job-details">
+            <span><MapPin size={16} /> {safeJob.location}</span>
+            <span className="job-salary">{safeJob.salary}</span>
+          </div>
+
+          <p className="job-description">{safeJob.description}</p>
+
+          <div className="job-tags">
+            {safeJob.tags.map(tag => (
+              <span key={tag} className="tag">{tag}</span>
+            ))}
+          </div>
+
+          <div className="job-card-actions">
+            <button className="btn-quick-apply">Quick Apply</button>
+            <button className="btn-details">View Details</button>
+          </div>
         </div>
       </div>
-
-      <div className="job-card-content">
-        <h3>{getDynamicEmoji(job)} {job.title}</h3>
-        <p className="job-company">{job.company}</p>
-        
-        <div className="job-details">
-          <span><MapPin size={16} /> {job.location}</span>
-          <span className="job-salary">{job.salary}</span>
-        </div>
-
-        <p className="job-description">{job.description}</p>
-
-        <div className="job-tags">
-          {(job.tags || []).map(tag => (
-            <span key={tag} className="tag">{tag}</span>
-          ))}
-        </div>
-
-        <div className="job-card-actions">
-          <button className="btn-quick-apply">Quick Apply</button>
-          <button className="btn-details">View Details</button>
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="advanced-job-feed">
