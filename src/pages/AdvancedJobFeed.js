@@ -34,13 +34,17 @@ const getDynamicEmoji = (job) => {
     'default': '💡'
   };
 
-  const matchedEmojiKey = job.tags?.find(tag => 
-    Object.keys(emojis).some(key => 
-      tag.toLowerCase().includes(key.toLowerCase())
-    )
-  );
+  // Pokud tags existuje a je pole
+  if (Array.isArray(job.tags)) {
+    const matchedEmojiKey = job.tags.find(tag => 
+      Object.keys(emojis).some(key => 
+        tag.toLowerCase().includes(key.toLowerCase())
+      )
+    );
 
-  return emojis[matchedEmojiKey] || emojis['default'];
+    return emojis[matchedEmojiKey] || emojis['default'];
+  }
+    return emojis['default'];
 };
 
 const INDUSTRY_CATEGORIES = [
