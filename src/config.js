@@ -1,12 +1,12 @@
 const config = {
   development: {
-    apiBaseUrl: 'https://0qzgdydz6b.execute-api.eu-central-1.amazonaws.com/prod/api/jobs'
+    apiBaseUrl: 'https://api.workuj.cz/api/jobs'
   },
   production: {
-    apiBaseUrl: 'https://0qzgdydz6b.execute-api.eu-central-1.amazonaws.com/prod/api/jobs'
+    apiBaseUrl: 'https://api.workuj.cz/api/jobs'
   },
   staging: {
-    apiBaseUrl: 'https://0qzgdydz6b.execute-api.eu-central-1.amazonaws.com/prod/api/jobs'
+    apiBaseUrl: 'https://api.workuj.cz/api/jobs'
   }
 };
 
