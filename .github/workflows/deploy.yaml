@@ -3,7 +3,7 @@ name: Deploy Workuj to AWS S3 and CloudFront
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
     inputs:
       force_rebuild:

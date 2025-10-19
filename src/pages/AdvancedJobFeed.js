@@ -35,13 +35,17 @@ const getDynamicEmoji = (job) => {
   };
 
   // Bezpečné zpracování tagů
-  const tags = Array.isArray(job.tags) 
+    const tags = Array.isArray(job.tags) 
     ? job.tags 
-    : (typeof job.tags === 'string' ? [job.tags] : []);
+    : (typeof job.tags === 'string' 
+        ? [job.tags] 
+        : (job.tags && typeof job.tags === 'object' && Object.keys(job.tags).length > 0
+            ? Object.keys(job.tags)
+            : []));
 
   const matchedEmojiKey = tags.find(tag => 
     Object.keys(emojis).some(key => 
-      tag.toLowerCase().includes(key.toLowerCase())
+      typeof tag === 'string' && tag.toLowerCase().includes(key.toLowerCase())
     )
   );
 
