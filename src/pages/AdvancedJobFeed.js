@@ -168,57 +168,65 @@ function AdvancedJobFeed() {
     fetchJobs();
   }, [fetchJobs]);
 
-  const renderJobCard = (job) => {
-    // Bezpečné zpracování dat jobu
-    const safeJob = {
-      id: job.id || job._id || 'unknown',
-      title: job.title || 'Nezadán',
-      company: job.company || 'Nezadána',
-      location: job.location || 'Neuvedena',
-      salary: job.salary || 'Mzda neuvedena',
-      tags: Array.isArray(job.tags) ? job.tags : (job.tags ? [job.tags] : []),
-      description: job.description || 'Žádný popis',
-      industry: job.industry || 'Neuvedeno'
-    };
+ const renderJobCard = (job) => {
+  // Bezpečné zpracování dat jobu
+  const safeJob = {
+    id: job.id || job._id || 'unknown',
+    title: job.title || 'Nezadán',
+    company: job.company || 'Nezadána',
+    location: job.location || 'Neuvedena',
+    salary: job.salary || 'Mzda neuvedena',
+    tags: Array.isArray(job.tags) 
+      ? job.tags 
+      : (typeof job.tags === 'string' 
+          ? [job.tags] 
+          : (job.tags && typeof job.tags === 'object' && Object.keys(job.tags).length > 0
+              ? Object.keys(job.tags)
+              : [])),
+    description: job.description || 'Žádný popis',
+    industry: job.industry || 'Neuvedeno'
+  };
 
-    return (
-      <div 
-        key={safeJob.id} 
-        className={`job-card`}
-      >
-        <div className="job-card-header">
-          <div className="job-card-badges">
-            <span className="badge matched-badge">
-              <TrendingUp size={16} /> Matched for You
-            </span>
-          </div>
-        </div>
-
-        <div className="job-card-content">
-          <h3>{getDynamicEmoji(safeJob)} {safeJob.title}</h3>
-          <p className="job-company">{safeJob.company}</p>
-          
-          <div className="job-details">
-            <span><MapPin size={16} /> {safeJob.location}</span>
-            <span className="job-salary">{safeJob.salary}</span>
-          </div>
-
-          <p className="job-description">{safeJob.description}</p>
-
-          <div className="job-tags">
-            {safeJob.tags.map(tag => (
-              <span key={tag} className="tag">{tag}</span>
-            ))}
-          </div>
-
-          <div className="job-card-actions">
-            <button className="btn-quick-apply">Quick Apply</button>
-            <button className="btn-details">View Details</button>
-          </div>
+  return (
+    <div 
+      key={safeJob.id} 
+      className={`job-card`}
+    >
+      <div className="job-card-header">
+        <div className="job-card-badges">
+          <span className="badge matched-badge">
+            <TrendingUp size={16} /> Matched for You
+          </span>
         </div>
       </div>
-    );
-  };
+
+      <div className="job-card-content">
+        <h3>{getDynamicEmoji(safeJob)} {safeJob.title}</h3>
+        <p className="job-company">{safeJob.company}</p>
+        
+        <div className="job-details">
+          <span><MapPin size={16} /> {safeJob.location}</span>
+          <span className="job-salary">{safeJob.salary}</span>
+        </div>
+
+        <p className="job-description">{safeJob.description}</p>
+
+        {safeJob.tags.length > 0 && (
+          <div className="job-tags">
+            {safeJob.tags.map((tag, index) => (
+              <span key={index} className="tag">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        <div className="job-card-actions">
+          <button className="btn-quick-apply">Quick Apply</button>
+          <button className="btn-details">View Details</button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   return (
     <div className="advanced-job-feed">
