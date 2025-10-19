@@ -4,6 +4,89 @@
   --glassmorphism-border: rgba(255, 255, 255, 0.3);
 }
 
+/* Loader a Error Styles */
+.job-feed-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px;
+  width: 100%;
+}
+
+.loader-container {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  color: var(--primary-300);
+}
+
+.spinning-loader {
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.job-feed-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 30px;
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 30px;
+  background-color: var(--red-50);
+  border: 1px solid var(--red-200);
+  border-radius: 10px;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.error-icon {
+  color: var(--red-700);
+  margin-bottom: 10px;
+}
+
+.error-content h3 {
+  color: var(--red-700);
+  margin-bottom: 10px;
+}
+
+.error-content p {
+  color: var(--neutral-600);
+  margin-bottom: 15px;
+}
+
+.retry-button {
+  padding: 10px 20px;
+  background-color: var(--primary-300);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.retry-button:hover {
+  background-color: var(--primary-400);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
 /* Flame Animations */
 @keyframes flame-flicker {
   0%, 100% { transform: translateY(0) scale(1); }
@@ -97,7 +180,6 @@
   margin-top: 1px;
 }
 
-/* Rest of the existing CSS remains the same... */
 .job-hotness-flame {
   animation: flame-flicker 1s infinite;
 }
@@ -172,7 +254,6 @@
   -webkit-text-fill-color: transparent;
   margin-bottom: 20px;
 }
-
 
 .search-container {
   position: relative;

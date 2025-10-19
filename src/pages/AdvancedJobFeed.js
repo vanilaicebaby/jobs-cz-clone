@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import AuthModal from '../components/auth/AuthModal';
+import { JobFeedLoader, JobFeedErrorMessage } from '../components/JobFeedLoaders';
 import config from '../config';
 
 const API_BASE_URL = config.apiBaseUrl;
@@ -35,7 +36,7 @@ const getDynamicEmoji = (job) => {
   };
 
   // Bezpečné zpracování tagů
-    const tags = Array.isArray(job.tags) 
+  const tags = Array.isArray(job.tags) 
     ? job.tags 
     : (typeof job.tags === 'string' 
         ? [job.tags] 
@@ -125,9 +126,11 @@ function AdvancedJobFeed() {
   const [authMode, setAuthMode] = useState('login');
   const [error, setError] = useState(null);
 
-  const fetchJobs = useCallback(async () => {
+  const fetchJobs = useCallback(async (isRetry = false) => {
+    if (isRetry) {
+      setError(null);
+    }
     setIsLoading(true);
-    setError(null);
 
     try {
       const params = new URLSearchParams();
@@ -144,12 +147,15 @@ function AdvancedJobFeed() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch job listings');
+        // Přidáme více informací o chybě
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || 
+          `HTTP error! status: ${response.status}`
+        );
       }
 
       const data = await response.json();
-      
-      console.log('API Response:', data);
 
       // Robustní extrakce dat
       const jobsData = data.jobs || data.data || (Array.isArray(data) ? data : []);
@@ -159,7 +165,7 @@ function AdvancedJobFeed() {
       setIsLoading(false);
     } catch (err) {
       console.error('Error fetching job listings:', err);
-      setError(err.message);
+      setError(err.message || 'Nepodařilo se načíst pracovní nabídky');
       setIsLoading(false);
     }
   }, [searchTerm, selectedCategory, currentPage]);
@@ -168,65 +174,65 @@ function AdvancedJobFeed() {
     fetchJobs();
   }, [fetchJobs]);
 
- const renderJobCard = (job) => {
-  // Bezpečné zpracování dat jobu
-  const safeJob = {
-    id: job.id || job._id || 'unknown',
-    title: job.title || 'Nezadán',
-    company: job.company || 'Nezadána',
-    location: job.location || 'Neuvedena',
-    salary: job.salary || 'Mzda neuvedena',
-    tags: Array.isArray(job.tags) 
-      ? job.tags 
-      : (typeof job.tags === 'string' 
-          ? [job.tags] 
-          : (job.tags && typeof job.tags === 'object' && Object.keys(job.tags).length > 0
-              ? Object.keys(job.tags)
-              : [])),
-    description: job.description || 'Žádný popis',
-    industry: job.industry || 'Neuvedeno'
-  };
+  const renderJobCard = (job) => {
+    // Bezpečné zpracování dat jobu
+    const safeJob = {
+      id: job.id || job._id || 'unknown',
+      title: job.title || 'Nezadán',
+      company: job.company || 'Nezadána',
+      location: job.location || 'Neuvedena',
+      salary: job.salary || 'Mzda neuvedena',
+      tags: Array.isArray(job.tags) 
+        ? job.tags 
+        : (typeof job.tags === 'string' 
+            ? [job.tags] 
+            : (job.tags && typeof job.tags === 'object' && Object.keys(job.tags).length > 0
+                ? Object.keys(job.tags)
+                : [])),
+      description: job.description || 'Žádný popis',
+      industry: job.industry || 'Neuvedeno'
+    };
 
-  return (
-    <div 
-      key={safeJob.id} 
-      className={`job-card`}
-    >
-      <div className="job-card-header">
-        <div className="job-card-badges">
-          <span className="badge matched-badge">
-            <TrendingUp size={16} /> Matched for You
-          </span>
-        </div>
-      </div>
-
-      <div className="job-card-content">
-        <h3>{getDynamicEmoji(safeJob)} {safeJob.title}</h3>
-        <p className="job-company">{safeJob.company}</p>
-        
-        <div className="job-details">
-          <span><MapPin size={16} /> {safeJob.location}</span>
-          <span className="job-salary">{safeJob.salary}</span>
-        </div>
-
-        <p className="job-description">{safeJob.description}</p>
-
-        {safeJob.tags.length > 0 && (
-          <div className="job-tags">
-            {safeJob.tags.map((tag, index) => (
-              <span key={index} className="tag">{tag}</span>
-            ))}
+    return (
+      <div 
+        key={safeJob.id} 
+        className={`job-card`}
+      >
+        <div className="job-card-header">
+          <div className="job-card-badges">
+            <span className="badge matched-badge">
+              <TrendingUp size={16} /> Matched for You
+            </span>
           </div>
-        )}
+        </div>
 
-        <div className="job-card-actions">
-          <button className="btn-quick-apply">Quick Apply</button>
-          <button className="btn-details">View Details</button>
+        <div className="job-card-content">
+          <h3>{getDynamicEmoji(safeJob)} {safeJob.title}</h3>
+          <p className="job-company">{safeJob.company}</p>
+          
+          <div className="job-details">
+            <span><MapPin size={16} /> {safeJob.location}</span>
+            <span className="job-salary">{safeJob.salary}</span>
+          </div>
+
+          <p className="job-description">{safeJob.description}</p>
+
+          {safeJob.tags.length > 0 && (
+            <div className="job-tags">
+              {safeJob.tags.map((tag, index) => (
+                <span key={index} className="tag">{tag}</span>
+              ))}
+            </div>
+          )}
+
+          <div className="job-card-actions">
+            <button className="btn-quick-apply">Quick Apply</button>
+            <button className="btn-details">View Details</button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   return (
     <div className="advanced-job-feed">
@@ -319,9 +325,12 @@ function AdvancedJobFeed() {
         <h2>Hot Jobs 🔥 <span className="job-count">({totalJobs} positions)</span></h2>
         
         {isLoading ? (
-          <div className="loading-spinner">Načítání...</div>
+          <JobFeedLoader />
         ) : error ? (
-          <div className="error-message">{error}</div>
+          <JobFeedErrorMessage 
+            message={error} 
+            onRetry={() => fetchJobs(true)} 
+          />
         ) : jobs.length > 0 ? (
           <div className="job-grid">
             {jobs.map(renderJobCard)}
@@ -329,7 +338,7 @@ function AdvancedJobFeed() {
         ) : (
           <div className="no-jobs-found">
             <Briefcase size={64} />
-            <p>No jobs match your search criteria</p>
+            <p>Žádné pracovní nabídky nesplňují vaše kritéria</p>
           </div>
         )}
 
