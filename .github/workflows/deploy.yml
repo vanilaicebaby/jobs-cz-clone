@@ -196,7 +196,12 @@ jobs:
           echo "✅ Method and integration configured for $http_method $resource_path" >&2
         }
 
-        # Setup all methods
+        # Setup all methods with API Key requirement (if configured)
+        if [ -n "${{ secrets.API_KEY_REQUIRED }}" ] && [ "${{ secrets.API_KEY_REQUIRED }}" = "true" ]; then
+          echo "⚠️ API Key protection will be configured manually in AWS Console"
+          echo "Set API_KEY_REQUIRED=false in secrets to disable this message"
+        fi
+
         setup_method "$PRODUCTS_RESOURCE_ID" "GET" "/api/products"
         setup_method "$PRODUCT_ID_RESOURCE_ID" "GET" "/api/products/{id}"
         setup_method "$HEALTH_RESOURCE_ID" "GET" "/api/health"
@@ -211,6 +216,17 @@ jobs:
 
         echo "🎉 REST API Gateway configuration complete!"
         echo "API URL: https://${API_ID}.execute-api.eu-central-1.amazonaws.com/prod"
+
+        if [ -n "${{ secrets.API_KEY_REQUIRED }}" ] && [ "${{ secrets.API_KEY_REQUIRED }}" = "true" ]; then
+          echo ""
+          echo "📋 API Key Setup Instructions:"
+          echo "1. Go to AWS API Gateway Console"
+          echo "2. Select your API: $API_ID"
+          echo "3. Go to 'API Keys' → Create API Key"
+          echo "4. Go to 'Usage Plans' → Create/Select plan → Add API Key"
+          echo "5. Associate usage plan with 'prod' stage"
+          echo "6. Add x-api-key header in frontend requests"
+        fi
 
     # ===== FRONTEND DEPLOYMENT =====
     - name: Install Frontend Dependencies
