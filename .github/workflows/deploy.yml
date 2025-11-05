@@ -24,7 +24,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION || 'eu-central-1' }}
+        aws-region: eu-central-1
 
     # ===== BACKEND DEPLOYMENT =====
     - name: Install Backend Dependencies
@@ -47,13 +47,13 @@ jobs:
         aws lambda update-function-code \
           --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
           --zip-file fileb://backend/lambda-deployment.zip \
-          --region ${{ secrets.AWS_REGION || 'eu-central-1' }}
+          --region eu-central-1
 
     - name: Wait for Lambda to Update
       run: |
         aws lambda wait function-updated \
           --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
-          --region ${{ secrets.AWS_REGION || 'eu-central-1' }}
+          --region eu-central-1
 
     # ===== FRONTEND DEPLOYMENT =====
     - name: Install Frontend Dependencies
@@ -68,18 +68,17 @@ jobs:
 
     - name: Deploy Frontend to S3
       run: |
-        aws s3 sync frontend/dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ \
+        aws s3 sync frontend/dist/ s3://${{ secrets.AWS_S3_BUCKET }}/ \
           --delete \
           --cache-control "public, max-age=31536000, immutable" \
           --exclude "index.html" \
-          --region ${{ secrets.AWS_REGION || 'eu-central-1' }}
+          --region eu-central-1
 
-        aws s3 cp frontend/dist/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html \
+        aws s3 cp frontend/dist/index.html s3://${{ secrets.AWS_S3_BUCKET }}/index.html \
           --cache-control "public, max-age=0, must-revalidate" \
-          --region ${{ secrets.AWS_REGION || 'eu-central-1' }}
+          --region eu-central-1
 
     - name: Invalidate CloudFront Cache
-      if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
       run: |
         aws cloudfront create-invalidation \
           --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
@@ -87,8 +86,6 @@ jobs:
 
     - name: Deployment Summary
       run: |
-        echo "✅ Backend deployed to Lambda: ${{ secrets.LAMBDA_FUNCTION_NAME }}"
-        echo "✅ Frontend deployed to S3: ${{ secrets.S3_BUCKET_NAME }}"
-        if [ -n "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" ]; then
-          echo "✅ CloudFront cache invalidated: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
-        fi
+        echo "✅ Backend deployed to Lambda"
+        echo "✅ Frontend deployed to S3: ${{ secrets.AWS_S3_BUCKET }}"
+        echo "✅ CloudFront cache invalidated"
