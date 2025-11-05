@@ -30,19 +30,22 @@ jobs:
     - name: Install Backend Dependencies
       working-directory: ./backend
       run: |
-        npm install
+        echo "Current directory:"
+        pwd
+        echo "Package.json content:"
+        cat package.json
+        echo "Installing dependencies..."
+        npm install --verbose
+        echo "Contents after install:"
         ls -la
+        echo "node_modules check:"
+        ls -la node_modules/ || echo "node_modules doesn't exist"
 
     - name: Prepare Lambda Package
       working-directory: ./backend
       run: |
         mkdir -p deployment
-        if [ -d "node_modules" ]; then
-          cp -r node_modules deployment/
-        else
-          echo "node_modules not found!"
-          exit 1
-        fi
+        cp -r node_modules deployment/
         cp lambda.js deployment/
         cp package.json deployment/
         cd deployment
