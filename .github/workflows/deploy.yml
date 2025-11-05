@@ -132,27 +132,27 @@ jobs:
           local path_part=$2
 
           # Check if resource exists
-          RESOURCE_ID=$(aws apigateway get-resources \
+          local resource_id=$(aws apigateway get-resources \
             --rest-api-id $API_ID \
             --region eu-central-1 \
             --query "items[?pathPart=='$path_part' && parentId=='$parent_id'].id" \
             --output text)
 
-          if [ -z "$RESOURCE_ID" ]; then
-            echo "Creating resource: $path_part"
-            RESOURCE_ID=$(aws apigateway create-resource \
+          if [ -z "$resource_id" ]; then
+            echo "Creating resource: $path_part" >&2
+            resource_id=$(aws apigateway create-resource \
               --rest-api-id $API_ID \
               --parent-id $parent_id \
               --path-part "$path_part" \
               --region eu-central-1 \
               --query 'id' \
               --output text)
-            echo "✅ Resource created: $RESOURCE_ID"
+            echo "✅ Resource created: $resource_id" >&2
           else
-            echo "✅ Resource exists: $path_part ($RESOURCE_ID)"
+            echo "✅ Resource exists: $path_part ($resource_id)" >&2
           fi
 
-          echo $RESOURCE_ID
+          echo "$resource_id"
         }
 
         # Create /api resource
@@ -173,27 +173,27 @@ jobs:
           local http_method=$2
           local resource_path=$3
 
-          echo "Setting up $http_method for $resource_path..."
+          echo "Setting up $http_method for $resource_path..." >&2
 
           # Create method if doesn't exist
           aws apigateway put-method \
             --rest-api-id $API_ID \
-            --resource-id $resource_id \
+            --resource-id "$resource_id" \
             --http-method $http_method \
             --authorization-type NONE \
-            --region eu-central-1 2>/dev/null || echo "Method already exists"
+            --region eu-central-1 2>/dev/null || echo "Method already exists" >&2
 
           # Create integration
           aws apigateway put-integration \
             --rest-api-id $API_ID \
-            --resource-id $resource_id \
+            --resource-id "$resource_id" \
             --http-method $http_method \
             --type AWS_PROXY \
             --integration-http-method POST \
             --uri "arn:aws:apigateway:eu-central-1:lambda:path/2015-03-31/functions/$LAMBDA_ARN/invocations" \
-            --region eu-central-1
+            --region eu-central-1 > /dev/null
 
-          echo "✅ Method and integration configured for $http_method $resource_path"
+          echo "✅ Method and integration configured for $http_method $resource_path" >&2
         }
 
         # Setup all methods
