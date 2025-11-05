@@ -1,17 +1,33 @@
 import serverlessExpress from '@codegenie/serverless-express';
 import express from 'express';
 import cors from 'cors';
+import crypto from 'crypto';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
 const app = express();
 
 // DynamoDB konfigurace
 const REGION = process.env.AWS_REGION || 'eu-central-1';
 const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'carbon-parts-products';
+const USERS_TABLE = 'carbon-parts-users';
+const ORDERS_TABLE = 'carbon-parts-orders';
 
 const client = new DynamoDBClient({ region: REGION });
 const docClient = DynamoDBDocumentClient.from(client);
+
+// Helper functions
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+function generateToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function generateId() {
+  return crypto.randomUUID();
+}
 
 // CORS konfigurace
 const corsOptions = {
@@ -304,7 +320,293 @@ const mockProducts = [
   },
 ];
 
-// Routes
+// Auth Middleware
+async function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  try {
+    // Query users table to find user with this token
+    const command = new ScanCommand({
+      TableName: USERS_TABLE,
+      FilterExpression: 'authToken = :token',
+      ExpressionAttributeValues: {
+        ':token': token,
+      },
+    });
+
+    const response = await docClient.send(command);
+
+    if (!response.Items || response.Items.length === 0) {
+      return res.status(403).json({ error: 'Invalid token' });
+    }
+
+    req.user = response.Items[0];
+    next();
+  } catch (error) {
+    console.error('Auth error:', error);
+    return res.status(500).json({ error: 'Authentication failed' });
+  }
+}
+
+// Auth Routes
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, firstName, lastName, phone } = req.body;
+
+    if (!email || !password || !firstName || !lastName) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Check if user already exists
+    const checkCommand = new QueryCommand({
+      TableName: USERS_TABLE,
+      IndexName: 'EmailIndex',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: {
+        ':email': email,
+      },
+    });
+
+    const existingUser = await docClient.send(checkCommand);
+
+    if (existingUser.Items && existingUser.Items.length > 0) {
+      return res.status(409).json({ error: 'User already exists' });
+    }
+
+    // Create new user
+    const userId = generateId();
+    const authToken = generateToken();
+    const hashedPassword = hashPassword(password);
+
+    const user = {
+      id: userId,
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      phone: phone || '',
+      authToken,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await docClient.send(
+      new PutCommand({
+        TableName: USERS_TABLE,
+        Item: user,
+      })
+    );
+
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    res.status(201).json({
+      success: true,
+      user: userWithoutPassword,
+      token: authToken,
+    });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ error: 'Registration failed', message: error.message });
+  }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password required' });
+    }
+
+    // Find user by email
+    const command = new QueryCommand({
+      TableName: USERS_TABLE,
+      IndexName: 'EmailIndex',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: {
+        ':email': email,
+      },
+    });
+
+    const response = await docClient.send(command);
+
+    if (!response.Items || response.Items.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const user = response.Items[0];
+    const hashedPassword = hashPassword(password);
+
+    if (user.password !== hashedPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Generate new token
+    const authToken = generateToken();
+
+    // Update user with new token
+    await docClient.send(
+      new PutCommand({
+        TableName: USERS_TABLE,
+        Item: {
+          ...user,
+          authToken,
+          updatedAt: new Date().toISOString(),
+        },
+      })
+    );
+
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    res.json({
+      success: true,
+      user: userWithoutPassword,
+      token: authToken,
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed', message: error.message });
+  }
+});
+
+app.get('/api/auth/profile', authenticateToken, async (req, res) => {
+  try {
+    const { password: _, authToken: __, ...userWithoutSensitiveData } = req.user;
+    res.json({ success: true, user: userWithoutSensitiveData });
+  } catch (error) {
+    console.error('Profile error:', error);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+app.put('/api/auth/profile', authenticateToken, async (req, res) => {
+  try {
+    const { firstName, lastName, phone, street, city, postalCode, country } = req.body;
+
+    const updatedUser = {
+      ...req.user,
+      firstName: firstName || req.user.firstName,
+      lastName: lastName || req.user.lastName,
+      phone: phone || req.user.phone,
+      street: street || req.user.street || '',
+      city: city || req.user.city || '',
+      postalCode: postalCode || req.user.postalCode || '',
+      country: country || req.user.country || '',
+      updatedAt: new Date().toISOString(),
+    };
+
+    await docClient.send(
+      new PutCommand({
+        TableName: USERS_TABLE,
+        Item: updatedUser,
+      })
+    );
+
+    const { password: _, authToken: __, ...userWithoutSensitiveData } = updatedUser;
+    res.json({ success: true, user: userWithoutSensitiveData });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// Orders Routes
+app.post('/api/orders', authenticateToken, async (req, res) => {
+  try {
+    const { items, deliveryAddress, paymentMethod, totalAmount } = req.body;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: 'Order items required' });
+    }
+
+    if (!deliveryAddress || !deliveryAddress.street || !deliveryAddress.city) {
+      return res.status(400).json({ error: 'Delivery address required' });
+    }
+
+    const orderId = generateId();
+    const order = {
+      id: orderId,
+      userId: req.user.id,
+      userEmail: req.user.email,
+      items,
+      deliveryAddress,
+      paymentMethod: paymentMethod || 'card',
+      totalAmount,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await docClient.send(
+      new PutCommand({
+        TableName: ORDERS_TABLE,
+        Item: order,
+      })
+    );
+
+    res.status(201).json({ success: true, order });
+  } catch (error) {
+    console.error('Create order error:', error);
+    res.status(500).json({ error: 'Failed to create order', message: error.message });
+  }
+});
+
+app.get('/api/orders', authenticateToken, async (req, res) => {
+  try {
+    const command = new QueryCommand({
+      TableName: ORDERS_TABLE,
+      IndexName: 'UserIdIndex',
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': req.user.id,
+      },
+      ScanIndexForward: false, // Sort by createdAt DESC
+    });
+
+    const response = await docClient.send(command);
+    res.json({ success: true, orders: response.Items || [] });
+  } catch (error) {
+    console.error('Fetch orders error:', error);
+    res.status(500).json({ error: 'Failed to fetch orders', message: error.message });
+  }
+});
+
+app.get('/api/orders/:id', authenticateToken, async (req, res) => {
+  try {
+    const command = new QueryCommand({
+      TableName: ORDERS_TABLE,
+      KeyConditionExpression: 'id = :id',
+      ExpressionAttributeValues: {
+        ':id': req.params.id,
+      },
+    });
+
+    const response = await docClient.send(command);
+
+    if (!response.Items || response.Items.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = response.Items[0];
+
+    // Check if order belongs to user
+    if (order.userId !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    res.json({ success: true, order });
+  } catch (error) {
+    console.error('Fetch order error:', error);
+    res.status(500).json({ error: 'Failed to fetch order', message: error.message });
+  }
+});
+
+// Products Routes
 app.get('/api/products', async (req, res) => {
   try {
     const command = new ScanCommand({

@@ -32,7 +32,15 @@
       "Bash(python fix-cors-properly.py:*)",
       "Bash(pip install:*)",
       "Bash(python -m pip install:*)",
-      "Bash(python3 -m pip install:*)"
+      "Bash(python3 -m pip install:*)",
+      "Bash(echo:*)",
+      "Bash(python update-get-cors.py:*)",
+      "Bash(python fix-options-mock.py:*)",
+      "Bash(python fix-mock-template.py:*)",
+      "Bash(node create-tables.js:*)",
+      "Bash(aws lambda get-function:*)",
+      "Bash(aws lambda list-functions:*)",
+      "Bash(aws iam put-role-policy:*)"
     ],
     "deny": [],
     "ask": []

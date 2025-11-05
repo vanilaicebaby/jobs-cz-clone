@@ -1,18 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { cart, getCartTotal, clearCart } = useCart();
+  const { user, isAuthenticated } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    email: '',
-    firstName: '',
-    lastName: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    phone: '',
+    email: user?.email || '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    address: user?.street || '',
+    city: user?.city || '',
+    postalCode: user?.postalCode || '',
+    phone: user?.phone || '',
+    country: user?.country || 'Česká republika',
   });
 
   const handleChange = (e) => {
@@ -22,13 +28,50 @@ const CheckoutPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically send the order to your backend
-    console.log('Order submitted:', { formData, cart });
-    alert('Objednávka byla úspěšně odeslána!');
-    clearCart();
-    navigate('/');
+
+    if (!isAuthenticated) {
+      setError('Pro dokončení objednávky se musíte přihlásit');
+      setTimeout(() => navigate('/login'), 2000);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const orderData = {
+        items: cart.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+        })),
+        deliveryAddress: {
+          street: formData.address,
+          city: formData.city,
+          postalCode: formData.postalCode,
+          country: formData.country,
+        },
+        paymentMethod: 'card',
+        totalAmount: getCartTotal() + (getCartTotal() > 10000 ? 0 : 200),
+      };
+
+      const response = await api.post('/orders', orderData);
+
+      if (response.data.success) {
+        clearCart();
+        alert('Objednávka byla úspěšně vytvořena!');
+        navigate('/orders');
+      }
+    } catch (err) {
+      console.error('Order submission error:', err);
+      setError(err.response?.data?.error || 'Nepodařilo se vytvořit objednávku');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (cart.length === 0) {
@@ -44,6 +87,12 @@ const CheckoutPage = () => {
     <div className="bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-2xl font-normal text-gray-900 mb-8 animate-fade-in">POKLADNA</h1>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
@@ -239,9 +288,10 @@ const CheckoutPage = () => {
 
               <button
                 onClick={handleSubmit}
-                className="w-full bg-black text-white py-3 px-4 text-sm font-medium hover:bg-gray-800 transition-all duration-300 btn-hover-lift"
+                disabled={loading}
+                className="w-full bg-black text-white py-3 px-4 text-sm font-medium hover:bg-gray-800 transition-all duration-300 btn-hover-lift disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                DOKONČIT OBJEDNÁVKU
+                {loading ? 'ZPRACOVÁVÁM...' : 'DOKONČIT OBJEDNÁVKU'}
               </button>
             </div>
           </div>
