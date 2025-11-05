@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -10,26 +12,42 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) {
-      alert('Hesla se neshodují!');
+      setError('Hesla se neshodují!');
       return;
     }
 
-    // Here you would typically register with your backend
-    console.log('Register:', formData);
-    alert('Registrace úspěšná!');
-    navigate('/login');
+    if (formData.password.length < 6) {
+      setError('Heslo musí mít alespoň 6 znaků!');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    const result = await register(formData);
+
+    if (result.success) {
+      navigate('/profile');
+    } else {
+      setError(result.error || 'Registrace selhala. Zkuste to prosím znovu.');
+    }
+
+    setLoading(false);
   };
 
   const handleGoogleRegister = () => {
@@ -47,6 +65,12 @@ const RegisterPage = () => {
             Vytvořte si nový účet
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 mb-6 animate-fade-in-up stagger-1 opacity-0">
           <div className="grid grid-cols-2 gap-4">
@@ -136,9 +160,10 @@ const RegisterPage = () => {
 
           <button
             type="submit"
-            className="w-full bg-black text-white py-3 px-4 text-sm font-medium hover:bg-gray-800 transition-all duration-300 btn-hover-lift"
+            disabled={loading}
+            className="w-full bg-black text-white py-3 px-4 text-sm font-medium hover:bg-gray-800 transition-all duration-300 btn-hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            ZAREGISTROVAT SE
+            {loading ? 'REGISTRACE...' : 'ZAREGISTROVAT SE'}
           </button>
         </form>
 

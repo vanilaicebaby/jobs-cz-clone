@@ -1,26 +1,39 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Here you would typically authenticate with your backend
-    console.log('Login:', formData);
-    alert('Přihlášení úspěšné!');
-    navigate('/');
+    setLoading(true);
+    setError('');
+
+    const result = await login(formData.email, formData.password);
+
+    if (result.success) {
+      navigate('/profile');
+    } else {
+      setError(result.error || 'Přihlášení selhalo. Zkuste to prosím znovu.');
+    }
+
+    setLoading(false);
   };
 
   const handleGoogleLogin = () => {
@@ -38,6 +51,12 @@ const LoginPage = () => {
             Přihlaste se ke svému účtu
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 mb-6 animate-fade-in-up stagger-1 opacity-0">
           <div>
@@ -80,9 +99,10 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="w-full bg-black text-white py-3 px-4 text-sm font-medium hover:bg-gray-800 transition-all duration-300 btn-hover-lift"
+            disabled={loading}
+            className="w-full bg-black text-white py-3 px-4 text-sm font-medium hover:bg-gray-800 transition-all duration-300 btn-hover-lift disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            PŘIHLÁSIT SE
+            {loading ? 'PŘIHLAŠOVÁNÍ...' : 'PŘIHLÁSIT SE'}
           </button>
         </form>
 
