@@ -79,12 +79,23 @@ jobs:
         echo "🔧 Configuring API Gateway routes..."
 
         # Get API Gateway ID from secrets or discover it
-        API_ID="${{ secrets.API_GATEWAY_ID }}"
+        API_ID_INPUT="${{ secrets.API_GATEWAY_ID }}"
 
-        if [ -z "$API_ID" ]; then
+        if [ -z "$API_ID_INPUT" ]; then
           echo "❌ API_GATEWAY_ID secret not set. Please add it to GitHub secrets."
           exit 1
         fi
+
+        # Extract just the API ID if full URL was provided
+        # e.g., "https://abc123.execute-api.eu-central-1.amazonaws.com" -> "abc123"
+        if [[ "$API_ID_INPUT" =~ ^https?:// ]]; then
+          API_ID=$(echo "$API_ID_INPUT" | sed -E 's|https?://([^.]+)\..*|\1|')
+          echo "Extracted API ID from URL: $API_ID"
+        else
+          API_ID="$API_ID_INPUT"
+        fi
+
+        echo "Using API Gateway ID: $API_ID"
 
         # Get Lambda ARN
         LAMBDA_ARN=$(aws lambda get-function \
