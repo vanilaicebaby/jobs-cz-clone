@@ -74,6 +74,102 @@ jobs:
           --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
           --region eu-central-1
 
+    - name: Configure API Gateway Integration
+      run: |
+        echo "🔧 Configuring API Gateway routes..."
+
+        # Get API Gateway ID from secrets or discover it
+        API_ID="${{ secrets.API_GATEWAY_ID }}"
+
+        if [ -z "$API_ID" ]; then
+          echo "❌ API_GATEWAY_ID secret not set. Please add it to GitHub secrets."
+          exit 1
+        fi
+
+        # Get Lambda ARN
+        LAMBDA_ARN=$(aws lambda get-function \
+          --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+          --region eu-central-1 \
+          --query 'Configuration.FunctionArn' \
+          --output text)
+
+        echo "Lambda ARN: $LAMBDA_ARN"
+
+        # Get AWS Account ID
+        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+        # Create or update integration
+        INTEGRATION_ID=$(aws apigatewayv2 get-integrations \
+          --api-id $API_ID \
+          --region eu-central-1 \
+          --query "Items[?contains(IntegrationUri, '${{ secrets.LAMBDA_FUNCTION_NAME }}')].IntegrationId" \
+          --output text)
+
+        if [ -z "$INTEGRATION_ID" ]; then
+          echo "Creating new Lambda integration..."
+          INTEGRATION_ID=$(aws apigatewayv2 create-integration \
+            --api-id $API_ID \
+            --integration-type AWS_PROXY \
+            --integration-uri $LAMBDA_ARN \
+            --payload-format-version 2.0 \
+            --region eu-central-1 \
+            --query 'IntegrationId' \
+            --output text)
+          echo "✅ Integration created: $INTEGRATION_ID"
+        else
+          echo "✅ Integration already exists: $INTEGRATION_ID"
+        fi
+
+        # Add Lambda permission for API Gateway
+        aws lambda add-permission \
+          --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+          --statement-id apigateway-invoke-${API_ID} \
+          --action lambda:InvokeFunction \
+          --principal apigateway.amazonaws.com \
+          --source-arn "arn:aws:execute-api:eu-central-1:${AWS_ACCOUNT_ID}:${API_ID}/*" \
+          --region eu-central-1 2>/dev/null || echo "Permission already exists"
+
+        # Define routes to create/update
+        routes=(
+          "GET /api/products"
+          "GET /api/products/{id}"
+          "GET /api/health"
+          "GET /"
+          "ANY /{proxy+}"
+        )
+
+        for route in "${routes[@]}"; do
+          METHOD=$(echo $route | cut -d' ' -f1)
+          PATH=$(echo $route | cut -d' ' -f2)
+
+          # Check if route exists
+          ROUTE_ID=$(aws apigatewayv2 get-routes \
+            --api-id $API_ID \
+            --region eu-central-1 \
+            --query "Items[?RouteKey=='$route'].RouteId" \
+            --output text)
+
+          if [ -z "$ROUTE_ID" ]; then
+            echo "Creating route: $route"
+            aws apigatewayv2 create-route \
+              --api-id $API_ID \
+              --route-key "$route" \
+              --target "integrations/$INTEGRATION_ID" \
+              --region eu-central-1
+            echo "✅ Route created: $route"
+          else
+            echo "Updating route: $route"
+            aws apigatewayv2 update-route \
+              --api-id $API_ID \
+              --route-id $ROUTE_ID \
+              --target "integrations/$INTEGRATION_ID" \
+              --region eu-central-1
+            echo "✅ Route updated: $route"
+          fi
+        done
+
+        echo "🎉 API Gateway configuration complete!"
+
     # ===== FRONTEND DEPLOYMENT =====
     - name: Install Frontend Dependencies
       working-directory: ./frontend

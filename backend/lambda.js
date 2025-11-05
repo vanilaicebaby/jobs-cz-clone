@@ -1,8 +1,17 @@
 import serverlessExpress from '@codegenie/serverless-express';
 import express from 'express';
 import cors from 'cors';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 const app = express();
+
+// DynamoDB konfigurace
+const REGION = process.env.AWS_REGION || 'eu-central-1';
+const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'carbon-parts-products';
+
+const client = new DynamoDBClient({ region: REGION });
+const docClient = DynamoDBDocumentClient.from(client);
 
 // Middleware
 app.use(cors());
@@ -269,16 +278,39 @@ const mockProducts = [
 ];
 
 // Routes
-app.get('/api/products', (req, res) => {
-  res.json(mockProducts);
+app.get('/api/products', async (req, res) => {
+  try {
+    const command = new ScanCommand({
+      TableName: TABLE_NAME,
+    });
+
+    const response = await docClient.send(command);
+    res.json(response.Items || []);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ error: 'Failed to fetch products', message: error.message });
+  }
 });
 
-app.get('/api/products/:id', (req, res) => {
-  const product = mockProducts.find((p) => p.id === req.params.id);
-  if (product) {
-    res.json(product);
-  } else {
-    res.status(404).json({ error: 'Product not found' });
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const command = new GetCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        id: req.params.id,
+      },
+    });
+
+    const response = await docClient.send(command);
+
+    if (response.Item) {
+      res.json(response.Item);
+    } else {
+      res.status(404).json({ error: 'Product not found' });
+    }
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({ error: 'Failed to fetch product', message: error.message });
   }
 });
 
