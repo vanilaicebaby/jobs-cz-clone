@@ -24,7 +24,15 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(echo \"curl -H \"\"x-api-key: GqouuONPuO9fU1PzWLeae2aHJ2DfcBJe4XugFDqo\"\" https://ldw0ca0cx6.execute-api.eu-central-1.amazonaws.com/prod/api/health\")"
+      "Bash(echo \"curl -H \"\"x-api-key: GqouuONPuO9fU1PzWLeae2aHJ2DfcBJe4XugFDqo\"\" https://ldw0ca0cx6.execute-api.eu-central-1.amazonaws.com/prod/api/health\")",
+      "Bash(aws apigateway update-method:*)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)",
+      "Bash(aws apigateway put-integration-response:*)",
+      "Bash(python fix-cors-properly.py:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python3 -m pip install:*)"
     ],
     "deny": [],
     "ask": []
