@@ -29,13 +29,20 @@ jobs:
     # ===== BACKEND DEPLOYMENT =====
     - name: Install Backend Dependencies
       working-directory: ./backend
-      run: npm install --production=false
+      run: |
+        npm install
+        ls -la
 
     - name: Prepare Lambda Package
       working-directory: ./backend
       run: |
         mkdir -p deployment
-        cp -r node_modules deployment/
+        if [ -d "node_modules" ]; then
+          cp -r node_modules deployment/
+        else
+          echo "node_modules not found!"
+          exit 1
+        fi
         cp lambda.js deployment/
         cp package.json deployment/
         cd deployment
