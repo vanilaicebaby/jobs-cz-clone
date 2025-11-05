@@ -28,22 +28,17 @@ jobs:
 
     # ===== BACKEND DEPLOYMENT =====
     - name: Install Backend Dependencies
-      working-directory: ./backend
       run: |
-        echo "Current directory:"
-        pwd
-        echo "Package.json content:"
-        cat package.json
-        echo "Installing dependencies..."
-        npm install --verbose
-        echo "Contents after install:"
-        ls -la
-        echo "node_modules check:"
-        ls -la node_modules/ || echo "node_modules doesn't exist"
+        echo "Installing backend dependencies..."
+        cd backend
+        rm -rf node_modules package-lock.json
+        npm install
+        echo "Backend node_modules created:"
+        ls -la node_modules/ | head -20
 
     - name: Prepare Lambda Package
-      working-directory: ./backend
       run: |
+        cd backend
         mkdir -p deployment
         cp -r node_modules deployment/
         cp lambda.js deployment/
