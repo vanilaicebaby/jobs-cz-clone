@@ -29,16 +29,30 @@ jobs:
     # ===== BACKEND DEPLOYMENT =====
     - name: Install Backend Dependencies
       run: |
-        echo "Installing backend dependencies..."
+        echo "Installing backend dependencies (ignoring workspaces)..."
         cd backend
         rm -rf node_modules package-lock.json
-        npm install
-        echo "Backend node_modules created:"
-        ls -la node_modules/ | head -20
+        npm install --no-workspaces --legacy-peer-deps
+        echo "Checking node_modules location:"
+        pwd
+        ls -la
+        if [ -d "node_modules" ]; then
+          echo "✅ node_modules found in backend/"
+          ls node_modules/ | head -10
+        else
+          echo "❌ node_modules NOT in backend/, checking parent..."
+          ls -la ../node_modules/ | head -10
+        fi
 
     - name: Prepare Lambda Package
       run: |
         cd backend
+        # If node_modules is in parent (workspaces), copy it here
+        if [ ! -d "node_modules" ] && [ -d "../node_modules" ]; then
+          echo "Copying node_modules from root workspace..."
+          cp -r ../node_modules .
+        fi
+
         mkdir -p deployment
         cp -r node_modules deployment/
         cp lambda.js deployment/
