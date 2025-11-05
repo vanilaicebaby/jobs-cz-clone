@@ -1,0 +1,94 @@
+name: Deploy to AWS (Backend + Frontend)
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION || 'eu-central-1' }}
+
+    # ===== BACKEND DEPLOYMENT =====
+    - name: Install Backend Dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: Prepare Lambda Package
+      working-directory: ./backend
+      run: |
+        mkdir -p deployment
+        cp -r node_modules deployment/
+        cp lambda.js deployment/
+        cp package.json deployment/
+        cd deployment
+        npm prune --production
+        zip -r ../lambda-deployment.zip .
+
+    - name: Deploy Backend to AWS Lambda
+      run: |
+        aws lambda update-function-code \
+          --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+          --zip-file fileb://backend/lambda-deployment.zip \
+          --region ${{ secrets.AWS_REGION || 'eu-central-1' }}
+
+    - name: Wait for Lambda to Update
+      run: |
+        aws lambda wait function-updated \
+          --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \
+          --region ${{ secrets.AWS_REGION || 'eu-central-1' }}
+
+    # ===== FRONTEND DEPLOYMENT =====
+    - name: Install Frontend Dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Build Frontend
+      working-directory: ./frontend
+      env:
+        VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      run: npm run build
+
+    - name: Deploy Frontend to S3
+      run: |
+        aws s3 sync frontend/dist/ s3://${{ secrets.S3_BUCKET_NAME }}/ \
+          --delete \
+          --cache-control "public, max-age=31536000, immutable" \
+          --exclude "index.html" \
+          --region ${{ secrets.AWS_REGION || 'eu-central-1' }}
+
+        aws s3 cp frontend/dist/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html \
+          --cache-control "public, max-age=0, must-revalidate" \
+          --region ${{ secrets.AWS_REGION || 'eu-central-1' }}
+
+    - name: Invalidate CloudFront Cache
+      if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+      run: |
+        aws cloudfront create-invalidation \
+          --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+          --paths "/*"
+
+    - name: Deployment Summary
+      run: |
+        echo "✅ Backend deployed to Lambda: ${{ secrets.LAMBDA_FUNCTION_NAME }}"
+        echo "✅ Frontend deployed to S3: ${{ secrets.S3_BUCKET_NAME }}"
+        if [ -n "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" ]; then
+          echo "✅ CloudFront cache invalidated: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
+        fi
