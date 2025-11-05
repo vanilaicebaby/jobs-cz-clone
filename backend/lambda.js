@@ -13,8 +13,20 @@ const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'carbon-parts-products';
 const client = new DynamoDBClient({ region: REGION });
 const docClient = DynamoDBDocumentClient.from(client);
 
+// CORS konfigurace
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://workuj.cz',
+    'https://www.workuj.cz',
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Mock Data
