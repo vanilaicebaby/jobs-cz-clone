@@ -9,7 +9,18 @@
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
       "Bash(NUL)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(curl -I https://ldw0ca0cx6.execute-api.eu-central-1.amazonaws.com/prod/api/products)",
+      "Bash(aws apigateway get-resources:*)",
+      "Bash(aws apigateway get-resource:*)",
+      "Bash(aws apigateway get-integration:*)",
+      "Bash(aws apigateway get-deployments:*)",
+      "Bash(aws apigateway get-stage:*)",
+      "Bash(aws apigateway get-method:*)",
+      "Bash(aws apigateway get-api-keys:*)",
+      "Bash(aws apigateway get-usage-plans:*)",
+      "Bash(aws apigateway get-usage-plan-keys:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
