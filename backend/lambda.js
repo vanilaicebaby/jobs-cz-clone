@@ -36,8 +36,8 @@ function addCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 }
 
-// Middleware
-app.use(express.json());
+// Note: express.json() causes issues with @codegenie/serverless-express
+// Body is already parsed by AWS Lambda / API Gateway
 
 // Mock Data
 const mockProducts = [
