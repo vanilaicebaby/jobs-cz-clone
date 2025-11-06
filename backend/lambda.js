@@ -1,6 +1,9 @@
 import serverless from 'serverless-http';
 import express from 'express';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import validator from 'validator';
+import rateLimit from 'express-rate-limit';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
@@ -18,9 +21,22 @@ const ORDERS_TABLE = 'carbon-parts-orders';
 const client = new DynamoDBClient({ region: REGION });
 const docClient = DynamoDBDocumentClient.from(client);
 
+// Security: Rate limiting for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests per window
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Helper functions
-function hashPassword(password) {
-  return crypto.createHash('sha256').update(password).digest('hex');
+async function hashPassword(password) {
+  return await bcrypt.hash(password, 12);
+}
+
+async function verifyPassword(password, hash) {
+  return await bcrypt.compare(password, hash);
 }
 
 function generateToken() {
@@ -31,12 +47,44 @@ function generateId() {
   return crypto.randomUUID();
 }
 
-// Helper to add CORS headers
+// Security: Input validation functions
+function validateEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  return validator.isEmail(email) && email.length <= 255;
+}
+
+function validatePassword(password) {
+  if (!password || typeof password !== 'string') return false;
+  return password.length >= 8 && password.length <= 128;
+}
+
+function sanitizeString(str, maxLength = 100) {
+  if (!str || typeof str !== 'string') return '';
+  // Remove any potential HTML/script tags and trim
+  return validator.escape(str.trim()).substring(0, maxLength);
+}
+
+function validatePhone(phone) {
+  if (!phone) return true; // Optional field
+  if (typeof phone !== 'string') return false;
+  // Czech phone number format
+  return validator.isMobilePhone(phone, 'cs-CZ') || validator.isMobilePhone(phone, 'any');
+}
+
+// Helper to add CORS and Security headers
 function addCorsHeaders(res) {
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', 'https://workuj.cz');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  // Security headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.setHeader('Content-Security-Policy', "default-src 'self'");
 }
 
 // Create router for /api prefix
@@ -336,14 +384,33 @@ async function authenticateToken(req, res, next) {
 }
 
 // Auth Routes
-router.post('/auth/register', async (req, res) => {
+router.post('/auth/register', authLimiter, async (req, res) => {
   try {
     addCorsHeaders(res);
     const { email, password, firstName, lastName, phone } = req.body;
 
-    if (!email || !password || !firstName || !lastName) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    // Security: Validate all inputs
+    if (!validateEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email address' });
     }
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({ error: 'Password must be 8-128 characters long' });
+    }
+
+    if (!firstName || !lastName) {
+      return res.status(400).json({ error: 'First name and last name are required' });
+    }
+
+    if (phone && !validatePhone(phone)) {
+      return res.status(400).json({ error: 'Invalid phone number' });
+    }
+
+    // Sanitize inputs
+    const sanitizedEmail = email.toLowerCase().trim();
+    const sanitizedFirstName = sanitizeString(firstName, 50);
+    const sanitizedLastName = sanitizeString(lastName, 50);
+    const sanitizedPhone = phone ? sanitizeString(phone, 20) : '';
 
     // Check if user already exists
     const checkCommand = new QueryCommand({
@@ -351,28 +418,29 @@ router.post('/auth/register', async (req, res) => {
       IndexName: 'EmailIndex',
       KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: {
-        ':email': email,
+        ':email': sanitizedEmail,
       },
     });
 
     const existingUser = await docClient.send(checkCommand);
 
     if (existingUser.Items && existingUser.Items.length > 0) {
-      return res.status(409).json({ error: 'User already exists' });
+      // Security: Don't reveal if user exists, use generic message
+      return res.status(400).json({ error: 'Registration failed. Please check your information.' });
     }
 
-    // Create new user
+    // Security: Hash password with bcrypt (cost factor 12)
     const userId = generateId();
     const authToken = generateToken();
-    const hashedPassword = hashPassword(password);
+    const hashedPassword = await hashPassword(password);
 
     const user = {
       id: userId,
-      email,
+      email: sanitizedEmail,
       password: hashedPassword,
-      firstName,
-      lastName,
-      phone: phone || '',
+      firstName: sanitizedFirstName,
+      lastName: sanitizedLastName,
+      phone: sanitizedPhone,
       authToken,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -395,18 +463,26 @@ router.post('/auth/register', async (req, res) => {
   } catch (error) {
     console.error('Register error:', error);
     addCorsHeaders(res);
-    res.status(500).json({ error: 'Registration failed', message: error.message });
+    // Security: Don't expose error details in production
+    res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
 });
 
-router.post('/auth/login', async (req, res) => {
+router.post('/auth/login', authLimiter, async (req, res) => {
   try {
     addCorsHeaders(res);
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
+    // Security: Validate inputs
+    if (!validateEmail(email)) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    if (!password || typeof password !== 'string') {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const sanitizedEmail = email.toLowerCase().trim();
 
     // Find user by email
     const command = new QueryCommand({
@@ -414,7 +490,7 @@ router.post('/auth/login', async (req, res) => {
       IndexName: 'EmailIndex',
       KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: {
-        ':email': email,
+        ':email': sanitizedEmail,
       },
     });
 
@@ -425,9 +501,11 @@ router.post('/auth/login', async (req, res) => {
     }
 
     const user = response.Items[0];
-    const hashedPassword = hashPassword(password);
 
-    if (user.password !== hashedPassword) {
+    // Security: Use bcrypt.compare instead of sha256
+    const passwordMatch = await verifyPassword(password, user.password);
+
+    if (!passwordMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -456,7 +534,8 @@ router.post('/auth/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     addCorsHeaders(res);
-    res.status(500).json({ error: 'Login failed', message: error.message });
+    // Security: Don't expose error details in production
+    res.status(500).json({ error: 'Login failed. Please try again.' });
   }
 });
 
@@ -477,15 +556,20 @@ router.put('/auth/profile', authenticateToken, async (req, res) => {
     addCorsHeaders(res);
     const { firstName, lastName, phone, street, city, postalCode, country } = req.body;
 
+    // Security: Validate and sanitize inputs
+    if (phone && !validatePhone(phone)) {
+      return res.status(400).json({ error: 'Invalid phone number' });
+    }
+
     const updatedUser = {
       ...req.user,
-      firstName: firstName || req.user.firstName,
-      lastName: lastName || req.user.lastName,
-      phone: phone || req.user.phone,
-      street: street || req.user.street || '',
-      city: city || req.user.city || '',
-      postalCode: postalCode || req.user.postalCode || '',
-      country: country || req.user.country || '',
+      firstName: firstName ? sanitizeString(firstName, 50) : req.user.firstName,
+      lastName: lastName ? sanitizeString(lastName, 50) : req.user.lastName,
+      phone: phone ? sanitizeString(phone, 20) : req.user.phone,
+      street: street ? sanitizeString(street, 100) : (req.user.street || ''),
+      city: city ? sanitizeString(city, 50) : (req.user.city || ''),
+      postalCode: postalCode ? sanitizeString(postalCode, 20) : (req.user.postalCode || ''),
+      country: country ? sanitizeString(country, 50) : (req.user.country || ''),
       updatedAt: new Date().toISOString(),
     };
 
@@ -544,7 +628,7 @@ router.post('/orders', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Create order error:', error);
     addCorsHeaders(res);
-    res.status(500).json({ error: 'Failed to create order', message: error.message });
+    res.status(500).json({ error: 'Failed to create order' });
   }
 });
 
@@ -566,7 +650,7 @@ router.get('/orders', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Fetch orders error:', error);
     addCorsHeaders(res);
-    res.status(500).json({ error: 'Failed to fetch orders', message: error.message });
+    res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
 
@@ -598,7 +682,7 @@ router.get('/orders/:id', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Fetch order error:', error);
     addCorsHeaders(res);
-    res.status(500).json({ error: 'Failed to fetch order', message: error.message });
+    res.status(500).json({ error: 'Failed to fetch order' });
   }
 });
 
@@ -615,7 +699,7 @@ router.get('/products', async (req, res) => {
   } catch (error) {
     console.error('Error fetching products:', error);
     addCorsHeaders(res);
-    res.status(500).json({ error: 'Failed to fetch products', message: error.message });
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
 
@@ -639,7 +723,7 @@ router.get('/products/:id', async (req, res) => {
   } catch (error) {
     console.error('Error fetching product:', error);
     addCorsHeaders(res);
-    res.status(500).json({ error: 'Failed to fetch product', message: error.message });
+    res.status(500).json({ error: 'Failed to fetch product' });
   }
 });
 
