@@ -1,10 +1,13 @@
-import serverlessExpress from '@codegenie/serverless-express';
+import serverless from 'serverless-http';
 import express from 'express';
 import crypto from 'crypto';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
 const app = express();
+
+// Enable JSON parsing
+app.use(express.json());
 
 // DynamoDB konfigurace
 const REGION = process.env.AWS_REGION || 'eu-central-1';
@@ -634,5 +637,5 @@ app.get('/', (req, res) => {
   res.json({ message: 'BMW Carbon Shop API', version: '1.0.0' });
 });
 
-// Export the serverless express handler
-export const handler = serverlessExpress({ app });
+// Export the serverless http handler
+export const handler = serverless(app);
