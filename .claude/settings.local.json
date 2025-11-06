@@ -43,7 +43,10 @@
       "Bash(aws iam put-role-policy:*)",
       "Bash(python setup-global-cors.py:*)",
       "Bash(python add-proxy-resource.py:*)",
-      "Bash(python cleanup-api-gateway.py:*)"
+      "Bash(python cleanup-api-gateway.py:*)",
+      "Bash(aws cloudfront list-distributions:*)",
+      "Bash(aws cloudfront create-invalidation:*)",
+      "Bash(python remove-api-key.py:*)"
     ],
     "deny": [],
     "ask": []
