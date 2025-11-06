@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount and validate token
+  // Load user from localStorage on mount and fetch fresh data from API
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     const storedToken = localStorage.getItem('authToken');
@@ -17,13 +17,36 @@ export const AuthProvider = ({ children }) => {
         setUser(JSON.parse(storedUser));
         // Set token in api headers
         api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+
+        // Fetch fresh user data from API
+        api.get('/auth/profile')
+          .then(response => {
+            const { user: freshUser } = response.data;
+            setUser(freshUser);
+            localStorage.setItem('user', JSON.stringify(freshUser));
+          })
+          .catch(error => {
+            console.error('Error fetching profile:', error);
+            // If token is invalid, logout
+            if (error.response?.status === 401 || error.response?.status === 403) {
+              localStorage.removeItem('user');
+              localStorage.removeItem('authToken');
+              delete api.defaults.headers.common['Authorization'];
+              setUser(null);
+            }
+          })
+          .finally(() => {
+            setLoading(false);
+          });
       } catch (error) {
         console.error('Error parsing user data:', error);
         localStorage.removeItem('user');
         localStorage.removeItem('authToken');
+        setLoading(false);
       }
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
