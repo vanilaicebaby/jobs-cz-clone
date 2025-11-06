@@ -39,8 +39,8 @@ function addCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
 }
 
-// Note: express.json() causes issues with @codegenie/serverless-express
-// Body is already parsed by AWS Lambda / API Gateway
+// Create router for /api prefix
+const router = express.Router();
 
 // Mock Data
 const mockProducts = [
@@ -336,7 +336,7 @@ async function authenticateToken(req, res, next) {
 }
 
 // Auth Routes
-app.post('/auth/register', async (req, res) => {
+router.post('/auth/register', async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone } = req.body;
 
@@ -397,7 +397,7 @@ app.post('/auth/register', async (req, res) => {
   }
 });
 
-app.post('/auth/login', async (req, res) => {
+router.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -456,7 +456,7 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-app.get('/auth/profile', authenticateToken, async (req, res) => {
+router.get('/auth/profile', authenticateToken, async (req, res) => {
   try {
     const { password: _, authToken: __, ...userWithoutSensitiveData } = req.user;
     res.json({ success: true, user: userWithoutSensitiveData });
@@ -466,7 +466,7 @@ app.get('/auth/profile', authenticateToken, async (req, res) => {
   }
 });
 
-app.put('/auth/profile', authenticateToken, async (req, res) => {
+router.put('/auth/profile', authenticateToken, async (req, res) => {
   try {
     const { firstName, lastName, phone, street, city, postalCode, country } = req.body;
 
@@ -498,7 +498,7 @@ app.put('/auth/profile', authenticateToken, async (req, res) => {
 });
 
 // Orders Routes
-app.post('/orders', authenticateToken, async (req, res) => {
+router.post('/orders', authenticateToken, async (req, res) => {
   try {
     const { items, deliveryAddress, paymentMethod, totalAmount } = req.body;
 
@@ -538,7 +538,7 @@ app.post('/orders', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/orders', authenticateToken, async (req, res) => {
+router.get('/orders', authenticateToken, async (req, res) => {
   try {
     const command = new QueryCommand({
       TableName: ORDERS_TABLE,
@@ -558,7 +558,7 @@ app.get('/orders', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/orders/:id', authenticateToken, async (req, res) => {
+router.get('/orders/:id', authenticateToken, async (req, res) => {
   try {
     const command = new QueryCommand({
       TableName: ORDERS_TABLE,
@@ -589,7 +589,7 @@ app.get('/orders/:id', authenticateToken, async (req, res) => {
 });
 
 // Products Routes
-app.get('/products', async (req, res) => {
+router.get('/products', async (req, res) => {
   try {
     addCorsHeaders(res);
     const command = new ScanCommand({
@@ -605,7 +605,7 @@ app.get('/products', async (req, res) => {
   }
 });
 
-app.get('/products/:id', async (req, res) => {
+router.get('/products/:id', async (req, res) => {
   try {
     const command = new GetCommand({
       TableName: TABLE_NAME,
@@ -628,14 +628,17 @@ app.get('/products/:id', async (req, res) => {
 });
 
 // Health check
-app.get('/health', (req, res) => {
+router.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // Root path
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
   res.json({ message: 'BMW Carbon Shop API', version: '1.0.0' });
 });
+
+// Mount router under /api
+app.use('/api', router);
 
 // Export the serverless http handler
 export const handler = serverless(app);
