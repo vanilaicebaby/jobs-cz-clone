@@ -42,7 +42,8 @@
       "Bash(aws lambda list-functions:*)",
       "Bash(aws iam put-role-policy:*)",
       "Bash(python setup-global-cors.py:*)",
-      "Bash(python add-proxy-resource.py:*)"
+      "Bash(python add-proxy-resource.py:*)",
+      "Bash(python cleanup-api-gateway.py:*)"
     ],
     "deny": [],
     "ask": []
