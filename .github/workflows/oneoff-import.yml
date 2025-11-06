@@ -1,0 +1,74 @@
+name: One-off Import Products
+
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:
+        description: AWS region
+        required: true
+        default: eu-central-1
+      dynamodb_table_name:
+        description: DynamoDB table name
+        required: true
+        default: carbon-parts-products
+      s3_bucket:
+        description: S3 bucket for images (leave empty to skip upload)
+        required: false
+        default: ''
+      s3_prefix:
+        description: S3 prefix for images
+        required: false
+        default: products/made-in-china
+      s3_public_url_base:
+        description: Public URL base (CDN or bucket domain). Leave empty to use default S3 URL
+        required: false
+        default: ''
+      source_url:
+        description: Source search URL
+        required: false
+        default: https://www.made-in-china.com/productdirectory.do?subaction=hunt&style=b&mode=and&code=0&comProvince=nolimit&order=0&isOpenCorrection=1&org=top&keyword=&file=&searchType=0&word=M3+lip&log_from=4&bv_id=1j9c5mv1s4e9
+      pages:
+        description: Number of pages to fetch
+        required: false
+        default: '1'
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ github.event.inputs.aws_region }}
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run one-off import
+        working-directory: backend
+        env:
+          AWS_REGION: ${{ github.event.inputs.aws_region }}
+          DYNAMODB_TABLE_NAME: ${{ github.event.inputs.dynamodb_table_name }}
+          S3_BUCKET: ${{ github.event.inputs.s3_bucket }}
+          S3_PREFIX: ${{ github.event.inputs.s3_prefix }}
+          S3_PUBLIC_URL_BASE: ${{ github.event.inputs.s3_public_url_base }}
+          SOURCE_URL: ${{ github.event.inputs.source_url }}
+          PAGES: ${{ github.event.inputs.pages }}
+        run: |
+          node import-to-dynamodb.js
+
+

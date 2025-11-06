@@ -37,10 +37,32 @@ npm install
 # Nastav environment proměnné
 export AWS_REGION=eu-central-1
 export DYNAMODB_TABLE_NAME=carbon-parts-products
+# volitelné S3 upload (doporučeno pro FE):
+# export S3_BUCKET=your-bucket-name
+# export S3_PREFIX=products/made-in-china
+# export S3_PUBLIC_URL_BASE=https://your-cdn-or-bucket-domain  # pokud chceš vlastní doménu
+# export UPLOAD_CONCURRENCY=5
 
-# Spusť import
+# Spusť import (Node.js scraper + DynamoDB import)
+cd backend
 node import-to-dynamodb.js
 ```
+
+### Možnost A2: Jednorázově přes GitHub Actions (bez lokálního běhu)
+
+1. V GitHubu nastav v repo Secrets:
+   - `AWS_ACCESS_KEY_ID`
+   - `AWS_SECRET_ACCESS_KEY`
+
+2. Otevři záložku Actions → workflow "One-off Import Products" → Run workflow a vyplň vstupy:
+   - `aws_region` (např. `eu-central-1`)
+   - `dynamodb_table_name` (např. `carbon-parts-products`)
+   - `s3_bucket` (pro upload obrázků)
+   - `s3_prefix` (např. `products/made-in-china`)
+   - `s3_public_url_base` (pokud používáš CDN/doménu)
+   - `source_url` a `pages` (volitelně)
+
+3. Po úspěšném běhu můžeš smazat soubor `/.github/workflows/oneoff-import.yml`.
 
 **Výstup:**
 ```

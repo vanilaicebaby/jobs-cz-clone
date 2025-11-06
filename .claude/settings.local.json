@@ -46,7 +46,9 @@
       "Bash(python cleanup-api-gateway.py:*)",
       "Bash(aws cloudfront list-distributions:*)",
       "Bash(aws cloudfront create-invalidation:*)",
-      "Bash(python remove-api-key.py:*)"
+      "Bash(python remove-api-key.py:*)",
+      "Bash(timeout 60 bash:*)",
+      "Bash(exit 0)"
     ],
     "deny": [],
     "ask": []
