@@ -28,19 +28,16 @@ function generateId() {
   return crypto.randomUUID();
 }
 
-// Middleware
-app.use(express.json());
-
-// CORS headers middleware
-app.use((req, res, next) => {
-  // Set CORS headers
+// Helper to add CORS headers
+function addCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://workuj.cz');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+}
 
-  next();
-});
+// Middleware
+app.use(express.json());
 
 // Mock Data
 const mockProducts = [
@@ -591,6 +588,7 @@ app.get('/orders/:id', authenticateToken, async (req, res) => {
 // Products Routes
 app.get('/products', async (req, res) => {
   try {
+    addCorsHeaders(res);
     const command = new ScanCommand({
       TableName: TABLE_NAME,
     });
@@ -599,6 +597,7 @@ app.get('/products', async (req, res) => {
     res.json(response.Items || []);
   } catch (error) {
     console.error('Error fetching products:', error);
+    addCorsHeaders(res);
     res.status(500).json({ error: 'Failed to fetch products', message: error.message });
   }
 });
