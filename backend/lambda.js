@@ -354,7 +354,7 @@ async function authenticateToken(req, res, next) {
 }
 
 // Auth Routes
-app.post('/api/auth/register', async (req, res) => {
+app.post('/auth/register', async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone } = req.body;
 
@@ -415,7 +415,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -474,7 +474,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.get('/api/auth/profile', authenticateToken, async (req, res) => {
+app.get('/auth/profile', authenticateToken, async (req, res) => {
   try {
     const { password: _, authToken: __, ...userWithoutSensitiveData } = req.user;
     res.json({ success: true, user: userWithoutSensitiveData });
@@ -484,7 +484,7 @@ app.get('/api/auth/profile', authenticateToken, async (req, res) => {
   }
 });
 
-app.put('/api/auth/profile', authenticateToken, async (req, res) => {
+app.put('/auth/profile', authenticateToken, async (req, res) => {
   try {
     const { firstName, lastName, phone, street, city, postalCode, country } = req.body;
 
@@ -516,7 +516,7 @@ app.put('/api/auth/profile', authenticateToken, async (req, res) => {
 });
 
 // Orders Routes
-app.post('/api/orders', authenticateToken, async (req, res) => {
+app.post('/orders', authenticateToken, async (req, res) => {
   try {
     const { items, deliveryAddress, paymentMethod, totalAmount } = req.body;
 
@@ -556,7 +556,7 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/orders', authenticateToken, async (req, res) => {
+app.get('/orders', authenticateToken, async (req, res) => {
   try {
     const command = new QueryCommand({
       TableName: ORDERS_TABLE,
@@ -576,7 +576,7 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/orders/:id', authenticateToken, async (req, res) => {
+app.get('/orders/:id', authenticateToken, async (req, res) => {
   try {
     const command = new QueryCommand({
       TableName: ORDERS_TABLE,
@@ -607,7 +607,7 @@ app.get('/api/orders/:id', authenticateToken, async (req, res) => {
 });
 
 // Products Routes
-app.get('/api/products', async (req, res) => {
+app.get('/products', async (req, res) => {
   try {
     const command = new ScanCommand({
       TableName: TABLE_NAME,
@@ -621,7 +621,7 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-app.get('/api/products/:id', async (req, res) => {
+app.get('/products/:id', async (req, res) => {
   try {
     const command = new GetCommand({
       TableName: TABLE_NAME,
@@ -644,7 +644,7 @@ app.get('/api/products/:id', async (req, res) => {
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 

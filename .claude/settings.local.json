@@ -40,7 +40,9 @@
       "Bash(node create-tables.js:*)",
       "Bash(aws lambda get-function:*)",
       "Bash(aws lambda list-functions:*)",
-      "Bash(aws iam put-role-policy:*)"
+      "Bash(aws iam put-role-policy:*)",
+      "Bash(python setup-global-cors.py:*)",
+      "Bash(python add-proxy-resource.py:*)"
     ],
     "deny": [],
     "ask": []
