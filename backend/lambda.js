@@ -338,6 +338,7 @@ async function authenticateToken(req, res, next) {
 // Auth Routes
 router.post('/auth/register', async (req, res) => {
   try {
+    addCorsHeaders(res);
     const { email, password, firstName, lastName, phone } = req.body;
 
     if (!email || !password || !firstName || !lastName) {
@@ -393,12 +394,14 @@ router.post('/auth/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Register error:', error);
+    addCorsHeaders(res);
     res.status(500).json({ error: 'Registration failed', message: error.message });
   }
 });
 
 router.post('/auth/login', async (req, res) => {
   try {
+    addCorsHeaders(res);
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -452,22 +455,26 @@ router.post('/auth/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
+    addCorsHeaders(res);
     res.status(500).json({ error: 'Login failed', message: error.message });
   }
 });
 
 router.get('/auth/profile', authenticateToken, async (req, res) => {
   try {
+    addCorsHeaders(res);
     const { password: _, authToken: __, ...userWithoutSensitiveData } = req.user;
     res.json({ success: true, user: userWithoutSensitiveData });
   } catch (error) {
     console.error('Profile error:', error);
+    addCorsHeaders(res);
     res.status(500).json({ error: 'Failed to fetch profile' });
   }
 });
 
 router.put('/auth/profile', authenticateToken, async (req, res) => {
   try {
+    addCorsHeaders(res);
     const { firstName, lastName, phone, street, city, postalCode, country } = req.body;
 
     const updatedUser = {
@@ -493,6 +500,7 @@ router.put('/auth/profile', authenticateToken, async (req, res) => {
     res.json({ success: true, user: userWithoutSensitiveData });
   } catch (error) {
     console.error('Update profile error:', error);
+    addCorsHeaders(res);
     res.status(500).json({ error: 'Failed to update profile' });
   }
 });
@@ -500,6 +508,7 @@ router.put('/auth/profile', authenticateToken, async (req, res) => {
 // Orders Routes
 router.post('/orders', authenticateToken, async (req, res) => {
   try {
+    addCorsHeaders(res);
     const { items, deliveryAddress, paymentMethod, totalAmount } = req.body;
 
     if (!items || items.length === 0) {
@@ -534,12 +543,14 @@ router.post('/orders', authenticateToken, async (req, res) => {
     res.status(201).json({ success: true, order });
   } catch (error) {
     console.error('Create order error:', error);
+    addCorsHeaders(res);
     res.status(500).json({ error: 'Failed to create order', message: error.message });
   }
 });
 
 router.get('/orders', authenticateToken, async (req, res) => {
   try {
+    addCorsHeaders(res);
     const command = new QueryCommand({
       TableName: ORDERS_TABLE,
       IndexName: 'UserIdIndex',
@@ -554,12 +565,14 @@ router.get('/orders', authenticateToken, async (req, res) => {
     res.json({ success: true, orders: response.Items || [] });
   } catch (error) {
     console.error('Fetch orders error:', error);
+    addCorsHeaders(res);
     res.status(500).json({ error: 'Failed to fetch orders', message: error.message });
   }
 });
 
 router.get('/orders/:id', authenticateToken, async (req, res) => {
   try {
+    addCorsHeaders(res);
     const command = new QueryCommand({
       TableName: ORDERS_TABLE,
       KeyConditionExpression: 'id = :id',
@@ -584,6 +597,7 @@ router.get('/orders/:id', authenticateToken, async (req, res) => {
     res.json({ success: true, order });
   } catch (error) {
     console.error('Fetch order error:', error);
+    addCorsHeaders(res);
     res.status(500).json({ error: 'Failed to fetch order', message: error.message });
   }
 });
@@ -607,6 +621,7 @@ router.get('/products', async (req, res) => {
 
 router.get('/products/:id', async (req, res) => {
   try {
+    addCorsHeaders(res);
     const command = new GetCommand({
       TableName: TABLE_NAME,
       Key: {
@@ -623,6 +638,7 @@ router.get('/products/:id', async (req, res) => {
     }
   } catch (error) {
     console.error('Error fetching product:', error);
+    addCorsHeaders(res);
     res.status(500).json({ error: 'Failed to fetch product', message: error.message });
   }
 });
